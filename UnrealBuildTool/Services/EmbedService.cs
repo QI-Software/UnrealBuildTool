@@ -75,7 +75,13 @@ namespace UnrealBuildTool.Services
                     .WithColor(DiscordColor.Orange)
                     .WithTimestamp(build.GetStartTime());
             }
-            else // TODO: Failed.
+            else if (build.IsFailed())
+            {
+                embed.WithDescription("Build failed.")
+                    .WithColor(DiscordColor.Red)
+                    .WithTimestamp(build.GetStartTime());
+            }
+            else
             {
                 embed.WithDescription("Starting build...")
                     .WithColor(DiscordColor.Blurple);

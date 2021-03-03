@@ -17,6 +17,7 @@ namespace UnrealBuildTool.Build
         private int _currentStage = 0;
         private DateTimeOffset _buildStartTime;
         private bool _isCompleted = false;
+        private bool _isFailed = false;
 
         private Task _buildTask;
         private CancellationTokenSource _cancellationToken;
@@ -148,6 +149,7 @@ namespace UnrealBuildTool.Build
                 
                 if (stage.StageResult == StageResult.Failed)
                 {
+                    _isFailed = true;
                     OnFailed(stage);
                     return;
                 }
@@ -161,6 +163,7 @@ namespace UnrealBuildTool.Build
                 OnCompleted();
             }
 
+            _isFailed = true;
             OnFailed(null);
         }
 
@@ -207,6 +210,11 @@ namespace UnrealBuildTool.Build
         public bool IsCompleted()
         {
             return _isCompleted;
+        }
+
+        public bool IsFailed()
+        {
+            return _isFailed;
         }
     }
 }

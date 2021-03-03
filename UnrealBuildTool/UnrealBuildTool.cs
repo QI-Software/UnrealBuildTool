@@ -73,7 +73,7 @@ namespace UnrealBuildTool
 
             _services = GetServices();
 
-            InitializeServices();
+            await InitializeServicesAsync();
             
             _log.Information(LogCategory + "Booting up bot.");
 
@@ -112,9 +112,11 @@ namespace UnrealBuildTool
             return services.BuildServiceProvider();
         }
 
-        public void InitializeServices()
+        public async Task InitializeServicesAsync()
         {
             _services.GetRequiredService<DiscordEventHandler>();
+
+            await _services.GetRequiredService<BuildService>().InitializeAsync();
 
             // This is done last, since the embed service is likely required by others first, and it may require others itself.
             _services.GetRequiredService<EmbedService>().InjectServices(_services);

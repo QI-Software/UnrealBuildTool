@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealBuildTool", "UnrealBuildTool\UnrealBuildTool.csproj", "{371DED2F-2223-4DA0-9286-9CF2493ACD28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnrealBuildTool.Build", "UnrealBuildTool.Build\UnrealBuildTool.Build.csproj", "{29704B87-5568-4149-9D09-882AB7570E47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{371DED2F-2223-4DA0-9286-9CF2493ACD28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{371DED2F-2223-4DA0-9286-9CF2493ACD28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{371DED2F-2223-4DA0-9286-9CF2493ACD28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29704B87-5568-4149-9D09-882AB7570E47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29704B87-5568-4149-9D09-882AB7570E47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29704B87-5568-4149-9D09-882AB7570E47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29704B87-5568-4149-9D09-882AB7570E47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

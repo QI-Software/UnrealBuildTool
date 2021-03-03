@@ -12,14 +12,14 @@ namespace UnrealBuildTool.Services
 
         public static bool Exists()
         {
-            return File.Exists("config.json");
+            return File.Exists("config/config.json");
         }
 
         public static async Task<ConfigurationService> LoadConfigurationAsync()
         {
             if (Exists())
             {
-                var json = await File.ReadAllTextAsync("config.json");
+                var json = await File.ReadAllTextAsync("config/config.json");
                 var settings = new JsonSerializerSettings
                 {
                     DefaultValueHandling = DefaultValueHandling.Populate,
@@ -35,8 +35,13 @@ namespace UnrealBuildTool.Services
                 DefaultValueHandling = DefaultValueHandling.Include,
             };
 
+            if (!Directory.Exists("config/"))
+            {
+                Directory.CreateDirectory("config/");
+            }
+
             var newJson = JsonConvert.SerializeObject(newConfig, Formatting.Indented, newSettings);
-            await File.WriteAllTextAsync("config.json", newJson);
+            await File.WriteAllTextAsync("config/config.json", newJson);
             return newConfig;
         }
 
@@ -48,7 +53,7 @@ namespace UnrealBuildTool.Services
             };
             
             var json = JsonConvert.SerializeObject(this, Formatting.Indented, settings);
-            await File.WriteAllTextAsync("config.json", json);
+            await File.WriteAllTextAsync("config/config.json", json);
         }
 
         public bool IsConfigurationValid(out string ErrorMessage)

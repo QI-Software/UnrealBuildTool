@@ -9,11 +9,13 @@ namespace UnrealBuildTool.Services
 {
     public class DiscordEventHandler
     {
+        private readonly BuildService _buildService;
         private readonly DiscordClient _client;
         private readonly Logger _log;
 
-        public DiscordEventHandler(DiscordClient client, Logger log)
+        public DiscordEventHandler(BuildService buildService, DiscordClient client, Logger log)
         {
+            _buildService = buildService;
             _client = client;
             _log = log;
             
@@ -28,8 +30,16 @@ namespace UnrealBuildTool.Services
 
         private async Task OnReady(DiscordClient sender, ReadyEventArgs e)
         {
-            await _client.UpdateStatusAsync(new DiscordActivity("Ready to build!", ActivityType.Playing),
-                UserStatus.Online);
+            if (_buildService.IsBuilding())
+            {
+                await _client.UpdateStatusAsync(new DiscordActivity("Building...", ActivityType.Playing),
+                    UserStatus.DoNotDisturb);
+            }
+            else
+            {
+                await _client.UpdateStatusAsync(new DiscordActivity("Ready to build!", ActivityType.Playing),
+                    UserStatus.Online);
+            }
         }
         
         private Task CommandErrored(CommandsNextExtension commands, CommandErrorEventArgs e)

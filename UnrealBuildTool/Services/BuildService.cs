@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DSharpPlus.Entities;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
@@ -181,15 +182,15 @@ namespace UnrealBuildTool.Services
                     continue;
                 }
 
-                if (!File.Exists(config.ProjectDirectory))
+                if (!Directory.Exists(config.ProjectDirectory))
                 {
-                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a non-existing .uproject file, ignoring.");
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a non-existing directory. It must be the root directory of the project.");
                     continue;
                 }
 
-                if (Path.GetExtension(config.ProjectDirectory)?.ToLower() != ".uproject")
+                if (!Directory.GetFiles(config.ProjectDirectory).Any(a => a.ToLower().EndsWith(".uproject")))
                 {
-                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a non-uproject file, ignoring.");
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a project directory without a .uproject file.");
                     continue;
                 }
 
@@ -217,7 +218,7 @@ namespace UnrealBuildTool.Services
             }
         }
 
-        public bool StartBuild(BuildConfiguration configuration, out string ErrorMessage)
+        public bool StartBuild(BuildConfiguration configuration, DiscordUser user, out string ErrorMessage)
         {
             if (configuration == null)
             {
@@ -237,13 +238,57 @@ namespace UnrealBuildTool.Services
                 return false;
             }
 
-            var newBuild = new AutomatedBuild(this, configuration);
+            var newBuild = new AutomatedBuild(this, configuration, user);
             if (!newBuild.InitializeConfiguration(out ErrorMessage))
             {
                 return false;
             }
+
+            _currentBuild = newBuild;
+            _currentBuild.OnStagedChanged += OnStagedChanged;
+            _currentBuild.OnConsoleOutput += OnConsoleOutput;
+            _currentBuild.OnConsoleError += OnConsoleError;
+            _currentBuild.OnCompleted += OnBuildCompleted;
+            _currentBuild.OnFailed += OnBuildFailed;
             
+            // Create the build status and output log messages on Discord.
+            var task = _buildNotifier.InitializeBuildNotifications(_currentBuild);
+            task.Wait();
+            
+            _currentBuild.StartBuild();
             return true;
+        }
+
+        private async void OnBuildFailed(BuildStage failedStage)
+        {
+            // await _buildNotifier.NotifyBuildFailedAsync(_currentBuild);
+            _currentBuild = null;
+        }
+
+        private async void OnBuildCompleted()
+        {
+            await _buildNotifier.OnBuildCompletedAsync();
+            _currentBuild = null;
+        }
+
+        private void OnConsoleError(string output)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnConsoleOutput(string output)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async void OnStagedChanged()
+        {
+            await _buildNotifier.UpdateBuildStateAsync();
+        }
+
+        internal async Task FailBuildAsync()
+        {
+
         }
     }
 }

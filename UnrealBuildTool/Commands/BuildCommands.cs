@@ -168,10 +168,10 @@ namespace UnrealBuildTool.Commands
 
             var startStatus = await ctx.RespondAsync(_embed.Message("Starting build...", DiscordColor.Blurple));
 
-            if (!_buildService.StartBuild(config, out string ErrorMessage))
+            if (!_buildService.StartBuild(config, ctx.User, out string errorMessage))
             {
                 await startStatus.ModifyAsync(
-                    _embed.Message($"An error occured while starting the build: {ErrorMessage}", DiscordColor.Red));
+                    _embed.Message($"An error occured while starting the build: {errorMessage}", DiscordColor.Red));
                 return;
             }
 

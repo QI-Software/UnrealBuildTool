@@ -90,6 +90,13 @@ namespace UnrealBuildTool.Services
                     "No valid build channel ID has been set, please create a build channel and set its ID in the config file.";
                 return false;
             }
+            
+            if (Discord.LoadingEmoteId == null || Discord.LoadingEmoteId < 0)
+            {
+                ErrorMessage =
+                    "No valid loadimg emote ID has been set, please add a loading emote and set its ID in the config file.";
+                return false;
+            }
 
             ErrorMessage = null;
             return true;

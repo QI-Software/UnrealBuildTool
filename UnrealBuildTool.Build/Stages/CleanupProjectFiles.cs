@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
 {
@@ -15,11 +17,24 @@ namespace UnrealBuildTool.Build.Stages
             return "Cleaning up Binaries and Intermediate folders";
         }
 
-        public override void GenerateDefaultStageConfiguration()
+        public override Task<StageResult> DoTaskAsync()
         {
-            base.GenerateDefaultStageConfiguration();
+            var binariesPath = $"{BuildConfig.ProjectDirectory}/Binaries";
+            var intermediatePath = $"{BuildConfig.ProjectDirectory}/Intermediate";
+            binariesPath = binariesPath.Replace("//", "/");
+            intermediatePath = intermediatePath.Replace("//", "/");
             
-            AddDefaultConfigurationKey("DeleteSavedFolder", typeof(bool), true);
+            if (Directory.Exists(binariesPath))
+            {
+                Directory.Delete(binariesPath, true);
+            }
+
+            if (Directory.Exists(intermediatePath))
+            {
+                Directory.Delete(intermediatePath, true);
+            }
+
+            return Task.FromResult<StageResult>(StageResult.Successful);
         }
     }
 }

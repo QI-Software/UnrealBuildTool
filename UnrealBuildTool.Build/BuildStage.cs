@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace UnrealBuildTool.Build
@@ -20,12 +21,38 @@ namespace UnrealBuildTool.Build
         /// The description of the stage to output to the user. 
         /// </summary>
         public abstract string GetDescription();
+        
+        /// <summary>
+        /// Thw build config this build stage belongs to, set before executing the task.
+        /// </summary>
+        public BuildConfiguration BuildConfig { get; set; }
+        
+        /// <summary>
+        /// The reason the stage failed if it did.
+        /// </summary>
+        public string FailureReason { get; protected set; }
+
+        
+        /// <summary>
+        /// Raised when this build stage receives new console output.
+        /// </summary>
+        public Action<string> OnConsoleOut;
+        
+        /// <summary>
+        /// Raised when this build stage receives a new console error.
+        /// </summary>
+        public Action<string> OnConsoleError;
 
         /// <summary>
         /// The required configuration arguments for this stage. The default values will be displayed on templates.
         /// </summary>
         [JsonProperty]
         protected internal Dictionary<string, object> StageConfiguration { get; internal set; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// The result of this stage.
+        /// </summary>
+        public StageResult StageResult { get; set; } = StageResult.Running;
 
         /// <summary>
         /// Is the set stage configuration valid? 
@@ -80,6 +107,14 @@ namespace UnrealBuildTool.Build
         public virtual Dictionary<string, object> GetStageConfiguration()
         {
             return StageConfiguration;
+        }
+
+        /// <summary>
+        /// Called to execute this build stage's task. Return whether or not the task succeeded.
+        /// </summary>
+        public virtual async Task<StageResult> DoTaskAsync()
+        {
+            return StageResult.Successful;
         }
     }
 }

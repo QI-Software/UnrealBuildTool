@@ -20,5 +20,9 @@ namespace UnrealBuildTool.Models
         [JsonProperty]
         [DefaultValue(null)]
         public ulong? BuildChannelId { get; private set; }
+        
+        [JsonProperty]
+        [DefaultValue(null)]
+        public ulong? LoadingEmoteId { get; private set; }
     }
 }

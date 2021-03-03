@@ -20,8 +20,6 @@ namespace UnrealBuildTool.Build.Stages
             base.GenerateDefaultStageConfiguration();
             
             AddDefaultConfigurationKey("DeleteSavedFolder", typeof(bool), true);
-            AddDefaultConfigurationKey("CumCumCum", typeof(string), "based");
-            AddDefaultConfigurationKey("SomeNumber", typeof(int), 1337);
         }
     }
 }

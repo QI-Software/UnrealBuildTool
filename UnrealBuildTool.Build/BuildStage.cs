@@ -37,13 +37,13 @@ namespace UnrealBuildTool.Build
             {
                 if (!StageConfiguration.ContainsKey(defaultKey.Key))
                 {
-                    ErrorMessage = $"Did not find expected configuration key '{defaultKey.Key}'.";
+                    ErrorMessage = $"Stage '{GetName()}': did not find expected configuration key '{defaultKey.Key}'.";
                     return false;
                 }
 
                 if (!defaultKey.Type.IsInstanceOfType(StageConfiguration[defaultKey.Key]))
                 {
-                    ErrorMessage = $"Expected key '{defaultKey.Key}' to be of type '{defaultKey.Type}'.";
+                    ErrorMessage = $"Stage '{GetName()}': expected key '{defaultKey.Key}' to be of type '{defaultKey.Type}'.";
                     return false;
                 }
             }

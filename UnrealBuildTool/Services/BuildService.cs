@@ -13,15 +13,17 @@ namespace UnrealBuildTool.Services
     public class BuildService
     {
         public static readonly string LogCategory = "BuildService: ";
-        
+
+        private readonly BuildNotificationService _buildNotifier;
         private readonly Logger _log;
 
-        private AutomatedBuild _currentBuild;
+        private AutomatedBuild _currentBuild = null;
         private Dictionary<string, Type> _buildStages = new Dictionary<string, Type>();
         private List<BuildConfiguration> _buildConfigurations = new List<BuildConfiguration>();
 
-        public BuildService(Logger log)
+        public BuildService(BuildNotificationService notifier, Logger log)
         {
+            _buildNotifier = notifier;
             _log = log;
         }
 
@@ -36,6 +38,11 @@ namespace UnrealBuildTool.Services
         public bool IsBuilding()
         {
             return _currentBuild != null;
+        }
+
+        public List<BuildConfiguration> GetBuildConfigurations()
+        {
+            return _buildConfigurations;
         }
 
         /// <summary>
@@ -101,12 +108,12 @@ namespace UnrealBuildTool.Services
             await File.WriteAllTextAsync("config/stageTemplates.json", json);
         }
 
-        private bool StageExists(string stageName)
+        public bool StageExists(string stageName)
         {
             return _buildStages.ContainsKey(stageName) && _buildStages[stageName] != null;
         }
 
-        private BuildStage InstantiateStage(string stageName)
+        public BuildStage InstantiateStage(string stageName)
         {
             if (string.IsNullOrWhiteSpace(stageName))
             {
@@ -208,6 +215,35 @@ namespace UnrealBuildTool.Services
                 _log.Information(LogCategory + $"Loaded build configuration '{config.Name}'.");
                 _buildConfigurations.Add(config);
             }
+        }
+
+        public bool StartBuild(BuildConfiguration configuration, out string ErrorMessage)
+        {
+            if (configuration == null)
+            {
+                ErrorMessage = "Cannot start a build with a null configuration";
+                return false;
+            }
+
+            if (IsBuilding())
+            {
+                ErrorMessage = "Cannot start a build: already building.";
+                return false;
+            }
+
+            if (!_buildNotifier.IsLinkedToChannel())
+            {
+                ErrorMessage = "Misconfigured build channel, the build notifier isn't able to output to the console.";
+                return false;
+            }
+
+            var newBuild = new AutomatedBuild(this, configuration);
+            if (!newBuild.InitializeConfiguration(out ErrorMessage))
+            {
+                return false;
+            }
+            
+            return true;
         }
     }
 }

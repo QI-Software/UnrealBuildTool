@@ -16,5 +16,9 @@ namespace UnrealBuildTool.Models
         [JsonProperty]
         [DefaultValue(null)]
         public ulong? BuildRoleId { get; private set; }
+        
+        [JsonProperty]
+        [DefaultValue(null)]
+        public ulong? BuildChannelId { get; private set; }
     }
 }

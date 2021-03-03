@@ -107,6 +107,7 @@ namespace UnrealBuildTool
                 .AddSingleton<DiscordEventHandler>()
                 .AddSingleton<EvaluationService>()
                 .AddSingleton<EmbedService>()
+                .AddSingleton<BuildNotificationService>()
                 .AddSingleton<BuildService>();
 
             return services.BuildServiceProvider();

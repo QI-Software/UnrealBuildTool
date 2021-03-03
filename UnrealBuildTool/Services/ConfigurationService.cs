@@ -83,6 +83,13 @@ namespace UnrealBuildTool.Services
                     "No valid build role ID has been set, please create a build role and attribute it to users who can trigger new builds.";
                 return false;
             }
+            
+            if (Discord.BuildChannelId == null || Discord.BuildChannelId < 0)
+            {
+                ErrorMessage =
+                    "No valid build channel ID has been set, please create a build channel and set its ID in the config file.";
+                return false;
+            }
 
             ErrorMessage = null;
             return true;

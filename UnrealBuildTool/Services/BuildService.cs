@@ -18,6 +18,7 @@ namespace UnrealBuildTool.Services
 
         private AutomatedBuild _currentBuild;
         private Dictionary<string, Type> _buildStages = new Dictionary<string, Type>();
+        private List<BuildConfiguration> _buildConfigurations = new List<BuildConfiguration>();
 
         public BuildService(Logger log)
         {
@@ -28,6 +29,8 @@ namespace UnrealBuildTool.Services
         {
             LoadBuildStages();
             await GenerateBuildStageTemplatesAsync();
+
+            await LoadBuildConfigurationsAsync();
         }
 
         public bool IsBuilding()
@@ -117,6 +120,94 @@ namespace UnrealBuildTool.Services
             }
 
             return (BuildStage) Activator.CreateInstance(_buildStages[stageName]);
+        }
+
+        public async Task LoadBuildConfigurationsAsync()
+        {
+            if (IsBuilding())
+            {
+                return;
+            }
+
+            _buildConfigurations = new List<BuildConfiguration>();
+
+            if (!Directory.Exists("config/buildConfigurations"))
+            {
+                Directory.CreateDirectory("config/buildConfigurations");
+            }
+
+            var template = new BuildConfigurationTemplate();
+            var templateJson = JsonConvert.SerializeObject(template, Formatting.Indented);
+            await File.WriteAllTextAsync("config/buildTemplate.json", templateJson);
+
+            foreach (var file in Directory.GetFiles("config/buildConfigurations", "*.json"))
+            {
+                var filename = Path.GetFileName(file);
+                var json = await File.ReadAllTextAsync(file);
+                BuildConfiguration config = null;
+                
+                try
+                {
+                    config = JsonConvert.DeserializeObject<BuildConfiguration>(json);
+                }
+                catch (Exception e)
+                {
+                    _log.Error(LogCategory + $"Failed to load build configuration from JSON file '{Path.GetFileName(file)}': " + e.Message);
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(config.Name))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{filename}' has a null or empty name, ignoring.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(config.Description))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' has a null or empty description, ignoring.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(config.ProjectDirectory))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' has a null or empty project directory, ignoring.");
+                    continue;
+                }
+
+                if (!File.Exists(config.ProjectDirectory))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a non-existing .uproject file, ignoring.");
+                    continue;
+                }
+
+                if (Path.GetExtension(config.ProjectDirectory)?.ToLower() != ".uproject")
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a non-uproject file, ignoring.");
+                    continue;
+                }
+
+                if (!Directory.Exists(config.EngineDirectory))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a non-existing engine directory, ignoring.");
+                    continue;
+                }
+
+                if (config.Stages.Count == 0)
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' contains no build stages, ignoring.");
+                    continue;
+                }
+
+                var unknownStage = config.Stages.Keys.FirstOrDefault(s => !StageExists(s));
+                if (unknownStage != default)
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' contains an unknown build stage '{unknownStage}', ignoring.");
+                    continue;
+                }
+                
+                _log.Information(LogCategory + $"Loaded build configuration '{config.Name}'.");
+                _buildConfigurations.Add(config);
+            }
         }
     }
 }

@@ -64,6 +64,9 @@ namespace UnrealBuildTool.Services
             
             _backgroundOutputSource = new CancellationTokenSource();
             _backgroundOutputTask = Task.Run(async () => await HandleConsoleOutputAsync());
+            
+            await _client.UpdateStatusAsync(new DiscordActivity("Building...", ActivityType.Playing),
+                UserStatus.DoNotDisturb);
         }
 
         public void AddOutputData(string data)
@@ -164,6 +167,9 @@ namespace UnrealBuildTool.Services
             _currentBuild = null;
             _buildOutputMessage = null;
             _currentOutput = new ArrayList();
+            
+            await _client.UpdateStatusAsync(new DiscordActivity("Ready to build!", ActivityType.Playing),
+                UserStatus.Online);
         }
     }
 }

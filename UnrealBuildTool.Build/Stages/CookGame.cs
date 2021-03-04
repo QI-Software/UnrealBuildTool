@@ -11,7 +11,8 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            throw new System.NotImplementedException();
+            TryGetConfigValue<string>("GameTarget", out var gameTarget);
+            return $"Cooking game with target '{gameTarget}'";
         }
 
         public override void GenerateDefaultStageConfiguration()
@@ -65,6 +66,7 @@ namespace UnrealBuildTool.Build.Stages
                 $"-target={gameTarget}",
                 $"-serverconfig={gameConfig}",
                 $"-clientconfig={gameConfig}",
+                "-compile",
             };
 
             _uatProcess = new Process()

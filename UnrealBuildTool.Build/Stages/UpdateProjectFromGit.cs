@@ -127,7 +127,7 @@ namespace UnrealBuildTool.Build.Stages
             
             if (bRunGitLFSPrune)
             {
-                OnConsoleOut("UBT: Running git reset.");
+                OnConsoleOut("UBT: Running git lfs prune.");
                 _pruneProcess = new Process() {StartInfo = startInfo};
                 _pruneProcess.StartInfo.Arguments = "/C " + string.Join(' ', lfsPruneArguments);
                 _pruneProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);

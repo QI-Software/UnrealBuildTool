@@ -23,7 +23,7 @@ namespace UnrealBuildTool.Build.Stages
             
             if (destination.Contains("/"))
             {
-                destination = target.Split('/').Last();
+                destination = destination.Split('/').Last();
             }
 
             return $"Move folder '{target}' to '{destination}'";

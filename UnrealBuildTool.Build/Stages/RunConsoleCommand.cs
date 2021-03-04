@@ -13,8 +13,6 @@ namespace UnrealBuildTool.Build.Stages
             base.GenerateDefaultStageConfiguration();
             
             AddDefaultConfigurationKey("Command", typeof(string), "");
-            AddDefaultConfigurationKey("RunInProjectDirectory", typeof(bool), true);
-            AddDefaultConfigurationKey("RunInEngineDirectory", typeof(bool), false);
         }
 
         public override Task<StageResult> DoTaskAsync()

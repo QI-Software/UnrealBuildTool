@@ -49,6 +49,7 @@ namespace UnrealBuildTool.Build.Stages
                 $"-Manifest=\"{manifestPath}\"",
                 "-Progress",
                 "-NoHotReload",
+                "-TargetType=Game"
             };
             
             _ubtProcess = new Process

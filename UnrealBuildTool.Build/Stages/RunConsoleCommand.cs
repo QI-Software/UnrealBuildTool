@@ -1,4 +1,6 @@
-﻿namespace UnrealBuildTool.Build.Stages
+﻿using System.Threading.Tasks;
+
+namespace UnrealBuildTool.Build.Stages
 {
     public class RunConsoleCommand : BuildStage
     {
@@ -14,7 +16,12 @@
             AddDefaultConfigurationKey("RunInProjectDirectory", typeof(bool), true);
             AddDefaultConfigurationKey("RunInEngineDirectory", typeof(bool), false);
         }
-        
+
+        public override Task<StageResult> DoTaskAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
         // TODO: Done
     }
 }

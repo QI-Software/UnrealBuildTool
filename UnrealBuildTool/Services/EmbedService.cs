@@ -36,9 +36,8 @@ namespace UnrealBuildTool.Services
             var sb = new StringBuilder();
             var stages = build.GetStages();
 
-            for (int i = 0; i < stages.Count; i++)
+            foreach (var stage in stages)
             {
-                var stage = stages[i];
                 var emote = "⏳";
 
                 if (build.IsCompleted())
@@ -53,7 +52,7 @@ namespace UnrealBuildTool.Services
                 {
                     emote = "⚠";
                 }
-                else if (stage.StageResult == StageResult.Failed)
+                else if (stage.StageResult == StageResult.Failed || build.IsCancelled())
                 {
                     emote = "⛔";
                 }
@@ -72,6 +71,12 @@ namespace UnrealBuildTool.Services
             {
                 embed.WithDescription("Build completed successfully!")
                     .WithColor(DiscordColor.Green)
+                    .WithTimestamp(build.GetStartTime());
+            }
+            else if (build.IsCancelled())
+            {
+                embed.WithDescription("Build cancelled.")
+                    .WithColor(DiscordColor.Red)
                     .WithTimestamp(build.GetStartTime());
             }
             else if (build.IsFailed())
@@ -94,7 +99,7 @@ namespace UnrealBuildTool.Services
             
             embed.AddField("**__Stages__**", sb.ToString()).Build();
 
-            if (build.IsFailed())
+            if (build.IsFailed() && !build.IsCancelled())
             {
                 var failedStage = build.GetStages().FirstOrDefault(s => s.StageResult == StageResult.Failed);
 

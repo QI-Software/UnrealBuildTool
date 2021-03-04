@@ -86,8 +86,7 @@ namespace UnrealBuildTool.Build.Stages
             }
             
             // Re-generate intermediate and the solution file.
-            var UBTPath = $"{BuildConfig.EngineDirectory}/Engine/Binaries/DotNET/UnrealBuildTool.exe";
-            UBTPath = UBTPath.Replace("//", "/");
+            var UBTPath = BuildConfig.GetUnrealBuildToolPath();
 
             var arguments = new[]
             {

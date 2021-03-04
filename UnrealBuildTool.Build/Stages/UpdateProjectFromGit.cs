@@ -5,6 +5,11 @@ namespace UnrealBuildTool.Build.Stages
 {
     public class UpdateProjectFromGit : BuildStage
     {
+        private Process _cleanProcess;
+        private Process _resetProcess;
+        private Process _fetchProcess;
+        private Process _pullProcess;
+
         public override string GetName() => "UpdateProjectFromGit";
     
         public override string GetDescription() => "Update project from Git";
@@ -64,18 +69,23 @@ namespace UnrealBuildTool.Build.Stages
             if (bRunGitClean)
             {
                 OnConsoleOut("UBT: Running git clean.");
-                var cleanProcess = new Process();
-                cleanProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-                cleanProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
-                cleanProcess.StartInfo = startInfo;
-                cleanProcess.Start();
-                cleanProcess.BeginOutputReadLine();
-                cleanProcess.BeginErrorReadLine();
-                cleanProcess.WaitForExit();
+                _cleanProcess = new Process();
+                _cleanProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                _cleanProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _cleanProcess.StartInfo = startInfo;
+                _cleanProcess.Start();
+                _cleanProcess.BeginOutputReadLine();
+                _cleanProcess.BeginErrorReadLine();
+                _cleanProcess.WaitForExit();
 
-                if (cleanProcess.ExitCode != 0)
+                if (IsCancelled)
                 {
-                    FailureReason = $"An error occured while running git clean ({cleanProcess.ExitCode})";
+                    return Task.FromResult(StageResult.Failed);
+                }
+
+                if (_cleanProcess.ExitCode != 0)
+                {
+                    FailureReason = $"An error occured while running git clean ({_cleanProcess.ExitCode})";
                     return Task.FromResult(StageResult.Failed);
                 }
             }
@@ -83,55 +93,97 @@ namespace UnrealBuildTool.Build.Stages
             if (bRunGitReset)
             {
                 OnConsoleOut("UBT: Running git reset.");
-                var resetProcess = new Process() {StartInfo = startInfo};
-                resetProcess.StartInfo.Arguments = "/C " + string.Join(' ', resetArguments);
-                resetProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-                resetProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
-                resetProcess.Start();
-                resetProcess.BeginOutputReadLine();
-                resetProcess.BeginErrorReadLine();
-                resetProcess.WaitForExit();
-
-                if (resetProcess.ExitCode != 0)
+                _resetProcess = new Process() {StartInfo = startInfo};
+                _resetProcess.StartInfo.Arguments = "/C " + string.Join(' ', resetArguments);
+                _resetProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                _resetProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _resetProcess.Start();
+                _resetProcess.BeginOutputReadLine();
+                _resetProcess.BeginErrorReadLine();
+                _resetProcess.WaitForExit();
+                
+                if (IsCancelled)
                 {
-                    FailureReason = $"An error occured while running git reset --hard ({resetProcess.ExitCode})";
+                    return Task.FromResult(StageResult.Failed);
+                }
+
+                if (_resetProcess.ExitCode != 0)
+                {
+                    FailureReason = $"An error occured while running git reset --hard ({_resetProcess.ExitCode})";
                     return Task.FromResult(StageResult.Failed);
                 }
             }
 
             OnConsoleOut("UBT: Running git fetch.");
-            var fetchProcess = new Process {StartInfo = startInfo};
-            fetchProcess.StartInfo.Arguments = "/C " + string.Join(' ', fetchArguments);
-            fetchProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-            fetchProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
-            fetchProcess.Start();
-            fetchProcess.BeginOutputReadLine();
-            fetchProcess.BeginErrorReadLine();
-            fetchProcess.WaitForExit();
-
-            if (fetchProcess.ExitCode != 0)
+            _fetchProcess = new Process {StartInfo = startInfo};
+            _fetchProcess.StartInfo.Arguments = "/C " + string.Join(' ', fetchArguments);
+            _fetchProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+            _fetchProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _fetchProcess.Start();
+            _fetchProcess.BeginOutputReadLine();
+            _fetchProcess.BeginErrorReadLine();
+            _fetchProcess.WaitForExit();
+            
+            if (IsCancelled)
             {
-                FailureReason = $"An error has occured while running git fetch ({fetchProcess.ExitCode})";
+                return Task.FromResult(StageResult.Failed);
+            }
+
+            if (_fetchProcess.ExitCode != 0)
+            {
+                FailureReason = $"An error has occured while running git fetch ({_fetchProcess.ExitCode})";
                 return Task.FromResult(StageResult.Failed);
             }
             
             OnConsoleOut("UBT: Running git pull.");
-            var pullProcess = new Process {StartInfo = startInfo};
-            pullProcess.StartInfo.Arguments = "/C " + string.Join(' ', pullArguments);
-            pullProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-            pullProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
-            pullProcess.Start();
-            pullProcess.BeginOutputReadLine();
-            pullProcess.BeginErrorReadLine();
-            pullProcess.WaitForExit();
+            _pullProcess = new Process {StartInfo = startInfo};
+            _pullProcess.StartInfo.Arguments = "/C " + string.Join(' ', pullArguments);
+            _pullProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+            _pullProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _pullProcess.Start();
+            _pullProcess.BeginOutputReadLine();
+            _pullProcess.BeginErrorReadLine();
+            _pullProcess.WaitForExit();
             
-            if (pullProcess.ExitCode != 0)
+            if (IsCancelled)
             {
-                FailureReason = $"An error has occured while running git pull ({pullProcess.ExitCode})";
+                return Task.FromResult(StageResult.Failed);
+            }
+            
+            if (_pullProcess.ExitCode != 0)
+            {
+                FailureReason = $"An error has occured while running git pull ({_pullProcess.ExitCode})";
                 return Task.FromResult(StageResult.Failed);
             }
 
             return Task.FromResult(StageResult.Successful);
+        }
+
+        public override Task OnCancellationRequestedAsync()
+        {
+            base.OnCancellationRequestedAsync();
+
+            if (_cleanProcess != null && !_cleanProcess.HasExited)
+            {
+                _cleanProcess.Kill();
+            }
+            
+            if (_resetProcess != null && !_resetProcess.HasExited)
+            {
+                _resetProcess.Kill();
+            }
+            
+            if (_fetchProcess != null && !_fetchProcess.HasExited)
+            {
+                _fetchProcess.Kill();
+            }
+            
+            if (_pullProcess != null && !_pullProcess.HasExited)
+            {
+                _pullProcess.Kill();
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

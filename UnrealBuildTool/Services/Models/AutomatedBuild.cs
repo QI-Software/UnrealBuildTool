@@ -18,6 +18,8 @@ namespace UnrealBuildTool.Build
         private DateTimeOffset _buildStartTime;
         private bool _isCompleted = false;
         private bool _isFailed = false;
+        private bool _isCancelled = false;
+        private bool _isCancellationRequested = false;
 
         private Task _buildTask;
         private CancellationTokenSource _cancellationToken;
@@ -36,6 +38,11 @@ namespace UnrealBuildTool.Build
         /// Raised when the current build failed.
         /// </summary>
         public Action<BuildStage> OnFailed { get; set; }
+        
+        /// <summary>
+        /// Raised when the current build is cancelled.
+        /// </summary>
+        public Action OnCancelled { get; set; }
         
         /// <summary>
         /// Raised when the current build sends new console output.
@@ -57,6 +64,41 @@ namespace UnrealBuildTool.Build
             _buildService = svc;
             _buildConfig = configuration;
             _instigator = instigator;
+        }
+        
+        public bool IsStarted()
+        {
+            return _buildTask != null;
+        }
+
+        public BuildConfiguration GetConfiguration()
+        {
+            return _buildConfig;
+        }
+
+        public DateTimeOffset GetStartTime()
+        {
+            return _buildStartTime;
+        }
+
+        public bool IsCompleted()
+        {
+            return _isCompleted;
+        }
+
+        public bool IsFailed()
+        {
+            return _isFailed;
+        }
+
+        public bool IsCancelled()
+        {
+            return _isCancelled;
+        }
+
+        public bool IsCancellationRequested()
+        {
+            return _isCancellationRequested;
         }
 
         public bool InitializeConfiguration(out string ErrorMessage)
@@ -118,14 +160,21 @@ namespace UnrealBuildTool.Build
             _buildStartTime = DateTimeOffset.Now;
         }
 
-        public void CancelBuild()
+        public async Task CancelBuildAsync()
         {
             if (_buildTask == null)
             {
                 throw new InvalidOperationException("No build is running, cannot cancel build.");
             }
 
+            _isCancellationRequested = true;
             _cancellationToken.Cancel();
+            int currentStage = _currentStage;
+            if (currentStage < _stages.Count)
+            {
+                var stage = _stages[currentStage];
+                await stage.OnCancellationRequestedAsync();
+            }
         }
 
         private async Task StartBuildAsync_Internal()
@@ -160,6 +209,11 @@ namespace UnrealBuildTool.Build
                     stage.StageResult = StageResult.Failed;
                 }
                 
+                if (_cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                
                 if (stage.StageResult == StageResult.Failed)
                 {
                     _isFailed = true;
@@ -170,10 +224,18 @@ namespace UnrealBuildTool.Build
                 _currentStage++;
             }
 
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                _isCancelled = true;
+                OnCancelled();
+                return;
+            }
+
             if (_currentStage == _stages.Count)
             {
                 _isCompleted = true;
                 OnCompleted();
+                return;
             }
 
             _isFailed = true;
@@ -203,31 +265,6 @@ namespace UnrealBuildTool.Build
             }
 
             return null;
-        }
-
-        public bool IsStarted()
-        {
-            return _buildTask != null;
-        }
-
-        public BuildConfiguration GetConfiguration()
-        {
-            return _buildConfig;
-        }
-
-        public DateTimeOffset GetStartTime()
-        {
-            return _buildStartTime;
-        }
-
-        public bool IsCompleted()
-        {
-            return _isCompleted;
-        }
-
-        public bool IsFailed()
-        {
-            return _isFailed;
         }
     }
 }

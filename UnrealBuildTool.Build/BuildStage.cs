@@ -53,6 +53,11 @@ namespace UnrealBuildTool.Build
         /// The result of this stage.
         /// </summary>
         public StageResult StageResult { get; set; } = StageResult.Scheduled;
+        
+        /// <summary>
+        /// Whether or now cancellation was called while this task was running.
+        /// </summary>
+        public bool IsCancelled { get; private set; }
 
         /// <summary>
         /// Is the set stage configuration valid? 
@@ -132,9 +137,16 @@ namespace UnrealBuildTool.Build
         /// <summary>
         /// Called to execute this build stage's task. Return whether or not the task succeeded.
         /// </summary>
-        public virtual async Task<StageResult> DoTaskAsync()
+        public abstract Task<StageResult> DoTaskAsync();
+
+        /// <summary>
+        /// Called when the build needs to be cancelled. Release anything ongoing and halt as soon as possible.
+        /// </summary>
+        public virtual Task OnCancellationRequestedAsync()
         {
-            return StageResult.Successful;
+            IsCancelled = true;
+            OnConsoleOut("UBT: Received cancellation request.");
+            return Task.CompletedTask;
         }
     }
 }

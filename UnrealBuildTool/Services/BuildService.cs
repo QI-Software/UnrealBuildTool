@@ -42,6 +42,11 @@ namespace UnrealBuildTool.Services
             return _currentBuild != null;
         }
 
+        public bool IsCancellationRequested()
+        {
+            return _currentBuild != null && _currentBuild.IsCancellationRequested();
+        }
+
         public List<BuildConfiguration> GetBuildConfigurations()
         {
             return _buildConfigurations;
@@ -269,6 +274,14 @@ namespace UnrealBuildTool.Services
             return true;
         }
 
+        public async Task CancelBuildAsync()
+        {
+            if (_currentBuild != null && !_currentBuild.IsCancelled())
+            {
+                await _currentBuild.CancelBuildAsync();
+            }
+        }
+
         private void OnBuildFailed(BuildStage failedStage)
         {
             _buildNotifier.OnBuildFailed();
@@ -278,6 +291,12 @@ namespace UnrealBuildTool.Services
         private void OnBuildCompleted()
         {
             _buildNotifier.OnBuildCompleted();
+            _currentBuild = null;
+        }
+
+        private void OnBuildCancelled()
+        {
+            _buildNotifier.OnBuildCancelled();
             _currentBuild = null;
         }
 

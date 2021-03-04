@@ -47,14 +47,14 @@ namespace UnrealBuildTool.Commands
         [Command("reloadconfigs")]
         public async Task ReloadBuildConfigurations(CommandContext ctx)
         {
-            await _buildService.LoadBuildConfigurationsAsync();
-
             if (_buildService.IsBuilding())
             {
                 await ctx.RespondAsync(_embed.Message("Cannot reload build configurations during a build.",
                     DiscordColor.Red));
                 return;
             }
+            
+            await _buildService.LoadBuildConfigurationsAsync();
 
             var count = _buildService.GetBuildConfigurations().Count;
             if (count == 0)
@@ -176,6 +176,26 @@ namespace UnrealBuildTool.Commands
             }
 
             await startStatus.ModifyAsync(_embed.Message("Successfully started build.", DiscordColor.Green));
+        }
+
+        [Command("cancelbuild")]
+        public async Task CancelBuild(CommandContext ctx)
+        {
+            if (!_buildService.IsBuilding())
+            {
+                await ctx.RespondAsync(_embed.Message("There are no builds to cancel.", DiscordColor.Red));
+                return;
+            }
+
+            if (_buildService.IsCancellationRequested())
+            {
+                await ctx.RespondAsync(_embed.Message("Cancellation was already requested.", DiscordColor.Red));
+                return;
+            }
+            
+            await _buildService.CancelBuildAsync();
+            await ctx.RespondAsync(_embed.Message("Cancellation request successful, please standby.",
+                DiscordColor.Green));
         }
     }
 }

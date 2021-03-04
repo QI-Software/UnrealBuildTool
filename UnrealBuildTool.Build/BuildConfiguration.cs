@@ -45,5 +45,10 @@ namespace UnrealBuildTool.Build
         {
             return $"{ProjectDirectory}/{ProjectFile}".Replace("//", "/");
         }
+
+        public string GetUnrealBuildToolPath()
+        {
+            return $"{EngineDirectory}/Engine/Binaries/DotNET/UnrealBuildTool.exe".Replace("//", "/");
+        }
     }
 }

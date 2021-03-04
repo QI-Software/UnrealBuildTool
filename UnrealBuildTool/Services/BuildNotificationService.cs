@@ -77,6 +77,12 @@ namespace UnrealBuildTool.Services
             _backgroundOutputTask = null;
         }
 
+        public void OnBuildCancelled()
+        {
+            _backgroundOutputSource.Cancel();
+            _backgroundOutputTask = null;
+        }
+
         public void OnBuildFailed()
         {
             if (_currentBuild == null)
@@ -157,6 +163,7 @@ namespace UnrealBuildTool.Services
             _log.Information(LogCategory + "Stopped console output handler.");
             _currentBuild = null;
             _buildOutputMessage = null;
+            _currentOutput = new ArrayList();
         }
     }
 }

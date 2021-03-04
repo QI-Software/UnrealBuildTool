@@ -107,6 +107,7 @@ namespace UnrealBuildTool.Build.Stages
 
             var msbuildArguments = new[]
             {
+                "MSBuild",
                 $"\"{BuildConfig.GetProjectFilePath()}\"",
                 $"-p:Configuration=\"{config}\"",
                 $"/property:Platform=\"{platform}\"",

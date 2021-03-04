@@ -35,10 +35,7 @@ namespace UnrealBuildTool.Services
                 DefaultValueHandling = DefaultValueHandling.Include,
             };
 
-            if (!Directory.Exists("config"))
-            {
-                Directory.CreateDirectory("config");
-            }
+            Directory.CreateDirectory("config");
 
             var newJson = JsonConvert.SerializeObject(newConfig, Formatting.Indented, newSettings);
             await File.WriteAllTextAsync("config/config.json", newJson);
@@ -53,6 +50,7 @@ namespace UnrealBuildTool.Services
             };
             
             var json = JsonConvert.SerializeObject(this, Formatting.Indented, settings);
+            Directory.CreateDirectory("config");
             await File.WriteAllTextAsync("config/config.json", json);
         }
 

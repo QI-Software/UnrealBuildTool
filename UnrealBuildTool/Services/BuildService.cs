@@ -216,7 +216,7 @@ namespace UnrealBuildTool.Services
                     continue;
                 }
 
-                var unknownStage = config.Stages.Keys.FirstOrDefault(s => !StageExists(s));
+                var unknownStage = config.Stages.FirstOrDefault(s => !StageExists(s.Name));
                 if (unknownStage != default)
                 {
                     _log.Warning(LogCategory + $"Build configuration '{config.Name}' contains an unknown build stage '{unknownStage}', ignoring.");
@@ -283,7 +283,7 @@ namespace UnrealBuildTool.Services
 
         private void OnConsoleError(string output)
         {
-            //throw new NotImplementedException();
+            _buildNotifier.AddOutputData(string.IsNullOrWhiteSpace(output) ? output : $"STDERR> {output}");
         }
 
         private void OnConsoleOutput(string output)

@@ -39,7 +39,7 @@ namespace UnrealBuildTool.Build
         /// The build's stages in order, name as key, configuration map as value.
         /// </summary>
         [JsonProperty]
-        public Dictionary<string, Dictionary<string, object>> Stages { get; protected set; }
+        public List<BuildConfigurationStage> Stages { get; protected set; }
 
         public string GetProjectFilePath()
         {

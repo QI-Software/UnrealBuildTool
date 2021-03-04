@@ -28,7 +28,6 @@ namespace UnrealBuildTool.Build.Stages
             }
             
             JObject uProject;
-            
             try
             {
                 var json = await File.ReadAllTextAsync(uprojectPath);
@@ -54,7 +53,7 @@ namespace UnrealBuildTool.Build.Stages
                     FailureReason = @"Could not find key Software\Epic Games\Unreal Engine\Builds";
                     return StageResult.Failed;
                 }
-
+                
                 if (key.GetValue(currentAssociation.Value<string>()) == null)
                 {
                     OnConsoleOut(

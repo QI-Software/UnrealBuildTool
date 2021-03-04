@@ -74,15 +74,15 @@ namespace UnrealBuildTool.Build
             }
             
             // Initialize the required build stages.
-            foreach (var stage in _buildConfig.Stages.Keys)
+            foreach (var stage in _buildConfig.Stages)
             {
-                if (!_buildService.StageExists(stage))
+                if (!_buildService.StageExists(stage.Name))
                 {
                     ErrorMessage = $"Configuration contains unknown stage '{stage}'.";
                     return false;
                 }
 
-                var instancedStage = _buildService.InstantiateStage(stage);
+                var instancedStage = _buildService.InstantiateStage(stage.Name);
                 if (instancedStage == null)
                 {
                     ErrorMessage = $"Failed to instantiate stage '{stage}'.";
@@ -90,6 +90,7 @@ namespace UnrealBuildTool.Build
                 }
                 
                 instancedStage.GenerateDefaultStageConfiguration();
+                instancedStage.SetStageConfiguration(stage.Configuration);
                 if (!instancedStage.IsStageConfigurationValid(out ErrorMessage))
                 {
                     return false;

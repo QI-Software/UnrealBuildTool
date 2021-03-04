@@ -10,13 +10,16 @@ namespace UnrealBuildTool.Build
             Description = "Build Configuration Description";
             ProjectDirectory = "/Path/To/Project.uproject";
             EngineDirectory = "/Path/To/Engine";
-            Stages = new Dictionary<string, Dictionary<string, object>>
+            Stages = new List<BuildConfigurationStage>()
             {
+                new BuildConfigurationStage
                 {
-                    "BuildStageName", new Dictionary<string, object>
+                    Name = "StageName",
+                    Configuration = new Dictionary<string, object>
                     {
-                        {"ConfigKey", "Value"},
-                        {"AnotherKey", true}
+                        { "Key1", "Value1" },
+                        { "BoolValue", true },
+                        { "SomeNumber", 1337 }
                     }
                 }
             };

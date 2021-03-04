@@ -4,7 +4,7 @@
     {
         public override string GetName() => "RunConsoleCommand";
 
-        public override string GetDescription() => $"Running command '{StageConfiguration["Command"]}'";
+        public override string GetDescription() => $"Running command";
 
         public override void GenerateDefaultStageConfiguration()
         {
@@ -15,6 +15,6 @@
             AddDefaultConfigurationKey("RunInEngineDirectory", typeof(bool), false);
         }
         
-        
+        // TODO: Done
     }
 }

@@ -87,7 +87,7 @@ namespace UnrealBuildTool.Build
             _defaultStageConfig = new List<StageConfigurationKey>();
         }
 
-        public virtual void AddDefaultConfigurationKey(string keyName, Type type, object defaultValue)
+        public void AddDefaultConfigurationKey(string keyName, Type type, object defaultValue)
         {
             if (string.IsNullOrWhiteSpace(keyName))
             {
@@ -104,9 +104,29 @@ namespace UnrealBuildTool.Build
             StageConfiguration.Add(keyName, defaultValue);
         }
         
-        public virtual Dictionary<string, object> GetStageConfiguration()
+        public Dictionary<string, object> GetStageConfiguration()
         {
             return StageConfiguration;
+        }
+
+        public void SetStageConfiguration(Dictionary<string, object> newConfig)
+        {
+            StageConfiguration = newConfig ?? throw new ArgumentNullException(nameof(newConfig));
+        }
+
+        public bool TryGetConfigValue<T>(string key, out T value)
+        {
+            if (StageConfiguration.ContainsKey(key))
+            {
+                if (StageConfiguration[key] is T obj)
+                {
+                    value = obj;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
         }
 
         /// <summary>

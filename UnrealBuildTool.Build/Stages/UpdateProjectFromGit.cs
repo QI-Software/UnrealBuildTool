@@ -7,23 +7,20 @@ namespace UnrealBuildTool.Build.Stages
     {
         public override string GetName() => "UpdateProjectFromGit";
     
-        public override string GetDescription() => "Updating project from Git";
+        public override string GetDescription() => "Update project from Git";
 
         public override void GenerateDefaultStageConfiguration()
         {
             base.GenerateDefaultStageConfiguration();
             
             AddDefaultConfigurationKey("RunGitClean", typeof(bool), true);
+            AddDefaultConfigurationKey("RunGitResetHard", typeof(bool), true);
         }
 
         public override Task<StageResult> DoTaskAsync()
         {
-            bool bRunGitClean = false;
-
-            if (StageConfiguration["RunGitClean"] is bool b)
-            {
-                bRunGitClean = b;
-            }
+            TryGetConfigValue<bool>("RunGitClean", out var bRunGitClean);
+            TryGetConfigValue<bool>("RunGitResetHard", out var bRunGitReset);
 
             var cleanArguments = new[]
             {
@@ -31,6 +28,14 @@ namespace UnrealBuildTool.Build.Stages
                 $"-C \"{BuildConfig.ProjectDirectory}\"",
                 "clean",
                 "-xfd"
+            };
+
+            var resetArguments = new[]
+            {
+                "git",
+                $"-C \"{BuildConfig.ProjectDirectory}\"",
+                "reset",
+                "--hard"
             };
 
             var fetchArguments = new[]
@@ -44,7 +49,7 @@ namespace UnrealBuildTool.Build.Stages
             {
                 "git",
                 $"-C \"{BuildConfig.ProjectDirectory}\"",
-                "fetch"
+                "pull"
             };
 
             var startInfo = new ProcessStartInfo
@@ -58,6 +63,7 @@ namespace UnrealBuildTool.Build.Stages
 
             if (bRunGitClean)
             {
+                OnConsoleOut("UBT: Running git clean.");
                 var cleanProcess = new Process();
                 cleanProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
                 cleanProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
@@ -69,11 +75,31 @@ namespace UnrealBuildTool.Build.Stages
 
                 if (cleanProcess.ExitCode != 0)
                 {
-                    FailureReason = "An error occured while running git clean.";
+                    FailureReason = $"An error occured while running git clean ({cleanProcess.ExitCode})";
+                    return Task.FromResult(StageResult.Failed);
+                }
+            }
+            
+            if (bRunGitReset)
+            {
+                OnConsoleOut("UBT: Running git reset.");
+                var resetProcess = new Process() {StartInfo = startInfo};
+                resetProcess.StartInfo.Arguments = "/C " + string.Join(' ', resetArguments);
+                resetProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                resetProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                resetProcess.Start();
+                resetProcess.BeginOutputReadLine();
+                resetProcess.BeginErrorReadLine();
+                resetProcess.WaitForExit();
+
+                if (resetProcess.ExitCode != 0)
+                {
+                    FailureReason = $"An error occured while running git reset --hard ({resetProcess.ExitCode})";
                     return Task.FromResult(StageResult.Failed);
                 }
             }
 
+            OnConsoleOut("UBT: Running git fetch.");
             var fetchProcess = new Process {StartInfo = startInfo};
             fetchProcess.StartInfo.Arguments = "/C " + string.Join(' ', fetchArguments);
             fetchProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
@@ -85,10 +111,11 @@ namespace UnrealBuildTool.Build.Stages
 
             if (fetchProcess.ExitCode != 0)
             {
-                FailureReason = "An error has occured while running git fetch.";
+                FailureReason = $"An error has occured while running git fetch ({fetchProcess.ExitCode})";
                 return Task.FromResult(StageResult.Failed);
             }
             
+            OnConsoleOut("UBT: Running git pull.");
             var pullProcess = new Process {StartInfo = startInfo};
             pullProcess.StartInfo.Arguments = "/C " + string.Join(' ', pullArguments);
             pullProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
@@ -100,7 +127,7 @@ namespace UnrealBuildTool.Build.Stages
             
             if (pullProcess.ExitCode != 0)
             {
-                FailureReason = "An error has occured while running git pull.";
+                FailureReason = $"An error has occured while running git pull ({pullProcess.ExitCode})";
                 return Task.FromResult(StageResult.Failed);
             }
 

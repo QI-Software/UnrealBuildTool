@@ -106,7 +106,7 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.OnCancellationRequestedAsync();
 
-            if (_uatProcess != null && _uatProcess.HasExited)
+            if (_uatProcess != null && !_uatProcess.HasExited)
             {
                 _uatProcess.Kill();
             }

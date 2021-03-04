@@ -222,6 +222,11 @@ namespace UnrealBuildTool.Build.Stages
             {
                 _pullProcess.Kill();
             }
+            
+            foreach (var process in Process.GetProcessesByName("git.exe"))
+            {
+                process.Kill();
+            }
 
             return Task.CompletedTask;
         }

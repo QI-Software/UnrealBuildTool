@@ -46,12 +46,5 @@ namespace UnrealBuildTool.Build.Stages
 
             return Task.FromResult(StageResult.Successful);
         }
-
-        // Don't need to do anything.
-        public override Task OnCancellationRequestedAsync()
-        {
-            base.OnCancellationRequestedAsync();
-            return Task.CompletedTask;
-        }
     }
 }

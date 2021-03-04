@@ -35,9 +35,9 @@ namespace UnrealBuildTool.Services
                 DefaultValueHandling = DefaultValueHandling.Include,
             };
 
-            if (!Directory.Exists("config/"))
+            if (!Directory.Exists("config"))
             {
-                Directory.CreateDirectory("config/");
+                Directory.CreateDirectory("config");
             }
 
             var newJson = JsonConvert.SerializeObject(newConfig, Formatting.Indented, newSettings);

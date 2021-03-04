@@ -9,6 +9,7 @@ namespace UnrealBuildTool.Build.Stages
         private Process _resetProcess;
         private Process _fetchProcess;
         private Process _pullProcess;
+        private Process _pruneProcess;
 
         public override string GetName() => "UpdateProjectFromGit";
     
@@ -20,12 +21,14 @@ namespace UnrealBuildTool.Build.Stages
             
             AddDefaultConfigurationKey("RunGitClean", typeof(bool), true);
             AddDefaultConfigurationKey("RunGitResetHard", typeof(bool), true);
+            AddDefaultConfigurationKey("RunGitLFSPrune", typeof(bool), true);
         }
 
         public override Task<StageResult> DoTaskAsync()
         {
             TryGetConfigValue<bool>("RunGitClean", out var bRunGitClean);
             TryGetConfigValue<bool>("RunGitResetHard", out var bRunGitReset);
+            TryGetConfigValue<bool>("RunGitLFSPrune", out var bRunGitLFSPrune);
 
             var cleanArguments = new[]
             {
@@ -41,6 +44,14 @@ namespace UnrealBuildTool.Build.Stages
                 $"-C \"{BuildConfig.ProjectDirectory}\"",
                 "reset",
                 "--hard"
+            };
+
+            var lfsPruneArguments = new[]
+            {
+                "git",
+                $"-C \"{BuildConfig.ProjectDirectory}\"",
+                "lfs",
+                "prune"
             };
 
             var fetchArguments = new[]
@@ -113,6 +124,30 @@ namespace UnrealBuildTool.Build.Stages
                     return Task.FromResult(StageResult.Failed);
                 }
             }
+            
+            if (bRunGitLFSPrune)
+            {
+                OnConsoleOut("UBT: Running git reset.");
+                _pruneProcess = new Process() {StartInfo = startInfo};
+                _pruneProcess.StartInfo.Arguments = "/C " + string.Join(' ', lfsPruneArguments);
+                _pruneProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                _pruneProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _pruneProcess.Start();
+                _pruneProcess.BeginOutputReadLine();
+                _pruneProcess.BeginErrorReadLine();
+                _pruneProcess.WaitForExit();
+                
+                if (IsCancelled)
+                {
+                    return Task.FromResult(StageResult.Failed);
+                }
+
+                if (_pruneProcess.ExitCode != 0)
+                {
+                    FailureReason = $"An error occured while running git lfs prune ({_pruneProcess.ExitCode})";
+                    return Task.FromResult(StageResult.Failed);
+                }
+            }
 
             OnConsoleOut("UBT: Running git fetch.");
             _fetchProcess = new Process {StartInfo = startInfo};
@@ -171,6 +206,11 @@ namespace UnrealBuildTool.Build.Stages
             if (_resetProcess != null && !_resetProcess.HasExited)
             {
                 _resetProcess.Kill();
+            }
+            
+            if (_pruneProcess != null && !_pruneProcess.HasExited)
+            {
+                _pruneProcess.Kill();
             }
             
             if (_fetchProcess != null && !_fetchProcess.HasExited)

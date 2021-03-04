@@ -34,15 +34,21 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue<string>("GameConfiguration", out var config);
             TryGetConfigValue<string>("GamePlatform", out var platform);
             TryGetConfigValue<string>("GameTarget", out var target);
+
+            var manifestPath = $"{BuildConfig.EngineDirectory}/Engine/Intermediate/Build/Manifest.xml";
+            manifestPath = manifestPath.Replace("//", "/").Replace(@"\", "/");
             
             var ubtArguments = new[]
             {
-                config,
+                "UnrealPak",
                 platform,
+                config,
                 $"-Project=\"{BuildConfig.GetProjectFilePath()}\"",
-                "-TargetType=Game",
+                $"\"{BuildConfig.GetProjectFilePath()}\"",
+                "-NoUBTMakeFiles",
+                $"-Manifest=\"{manifestPath}\"",
                 "-Progress",
-                "-NoHotReloadFromIDE",
+                "-NoHotReload",
             };
             
             _ubtProcess = new Process

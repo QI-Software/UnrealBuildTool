@@ -138,7 +138,7 @@ namespace UnrealBuildTool.Commands
 
                              Press ✅ to start the build.
 
-                             Press 🛑 to cancel.";
+                             Press ⛔ to cancel.";
 
 
             embed = new DiscordEmbedBuilder()
@@ -151,16 +151,16 @@ namespace UnrealBuildTool.Commands
 
             var msg = await ctx.RespondAsync(embed);
             await msg.CreateReactionAsync(DiscordEmoji.FromUnicode("✅"));
-            _ = msg.CreateReactionAsync(DiscordEmoji.FromUnicode("🛑"));
+            _ = msg.CreateReactionAsync(DiscordEmoji.FromUnicode("⛔"));
 
             var reactResult = await interactivity.WaitForReactionAsync(m =>
             {
                 return m.Message.Id == msg.Id
                        && m.User.Id == ctx.User.Id
-                       && (m.Emoji == DiscordEmoji.FromUnicode("✅") || m.Emoji == DiscordEmoji.FromUnicode("🛑"));
+                       && (m.Emoji == DiscordEmoji.FromUnicode("✅") || m.Emoji == DiscordEmoji.FromUnicode("⛔"));
             }, TimeSpan.FromMinutes(1));
 
-            if (reactResult.TimedOut || reactResult.Result.Emoji == DiscordEmoji.FromUnicode("🛑"))
+            if (reactResult.TimedOut || reactResult.Result.Emoji == DiscordEmoji.FromUnicode("⛔"))
             {
                 await ctx.RespondAsync(_embed.Message("Aborting build.", DiscordColor.Red));
                 return;

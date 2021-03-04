@@ -30,7 +30,7 @@ namespace UnrealBuildTool.Build
         /// <summary>
         /// The reason the stage failed if it did.
         /// </summary>
-        public string FailureReason { get; protected set; }
+        public string FailureReason { get; set; }
 
         
         /// <summary>

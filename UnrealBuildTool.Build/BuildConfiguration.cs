@@ -22,6 +22,12 @@ namespace UnrealBuildTool.Build
         /// </summary>
         [JsonProperty]
         public string ProjectDirectory { get; protected set; }
+        
+        /// <summary>
+        /// Name of the .uproject file in the project's directory.
+        /// </summary>
+        [JsonProperty]
+        public string ProjectFile { get; protected set; }
 
         /// <summary>
         /// Absolute path to the engine's directory.
@@ -34,5 +40,10 @@ namespace UnrealBuildTool.Build
         /// </summary>
         [JsonProperty]
         public Dictionary<string, Dictionary<string, object>> Stages { get; protected set; }
+
+        public string GetProjectFilePath()
+        {
+            return $"{ProjectDirectory}/{ProjectFile}".Replace("//", "/");
+        }
     }
 }

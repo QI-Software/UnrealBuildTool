@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
@@ -188,9 +189,18 @@ namespace UnrealBuildTool.Services
                     continue;
                 }
 
-                if (!Directory.GetFiles(config.ProjectDirectory).Any(a => a.ToLower().EndsWith(".uproject")))
+                if (string.IsNullOrWhiteSpace(config.ProjectFile))
                 {
-                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' points to a project directory without a .uproject file.");
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' has null or empty project file, ignoring.");
+                    continue;
+                }
+
+                var projectFilePath = $"{config.ProjectDirectory}/{config.ProjectFile}";
+                projectFilePath = projectFilePath.Replace("//", "/");
+                
+                if (!File.Exists(projectFilePath))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' has no .uproject file at set location, ignoring.");
                     continue;
                 }
 
@@ -261,7 +271,7 @@ namespace UnrealBuildTool.Services
 
         private async void OnBuildFailed(BuildStage failedStage)
         {
-            // await _buildNotifier.NotifyBuildFailedAsync(_currentBuild);
+            await _buildNotifier.OnBuildFailedAsync();
             _currentBuild = null;
         }
 
@@ -273,22 +283,16 @@ namespace UnrealBuildTool.Services
 
         private void OnConsoleError(string output)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         private void OnConsoleOutput(string output)
         {
-            throw new NotImplementedException();
+            _buildNotifier.AddOutputData(output);
         }
 
         private async void OnStagedChanged()
         {
-            await _buildNotifier.UpdateBuildStateAsync();
-        }
-
-        internal async Task FailBuildAsync()
-        {
-
         }
     }
 }

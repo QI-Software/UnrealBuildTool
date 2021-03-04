@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using DSharpPlus;
@@ -44,19 +45,23 @@ namespace UnrealBuildTool.Services
                 {
                     emote = "✅";
                 }
-                else if (i == build.GetCurrentStageIndex())
-                {
-                    emote = DiscordEmoji.FromGuildEmote(_client, _config.Discord.LoadingEmoteId.GetValueOrDefault()).ToString();
-                }
                 else if (stage.StageResult == StageResult.Successful)
                 {
                     emote = "✅";
                 }
                 else if (stage.StageResult == StageResult.SuccessfulWithWarnings)
                 {
-                    emote = "🚩";
+                    emote = "⚠";
                 }
-                sb.AppendLine($"{emote} {stage.GetName()}");
+                else if (stage.StageResult == StageResult.Failed)
+                {
+                    emote = "⛔";
+                }
+                else if (stage.StageResult == StageResult.Running)
+                {
+                    emote = DiscordEmoji.FromGuildEmote(_client, _config.Discord.LoadingEmoteId.GetValueOrDefault()).ToString();
+                }
+                sb.AppendLine($"{emote} {stage.GetDescription()}");
             }
 
             var embed = new DiscordEmbedBuilder()
@@ -69,16 +74,16 @@ namespace UnrealBuildTool.Services
                     .WithColor(DiscordColor.Green)
                     .WithTimestamp(build.GetStartTime());
             }
-            else if (build.IsStarted())
-            {
-                embed.WithDescription("Building...")
-                    .WithColor(DiscordColor.Orange)
-                    .WithTimestamp(build.GetStartTime());
-            }
             else if (build.IsFailed())
             {
                 embed.WithDescription("Build failed.")
                     .WithColor(DiscordColor.Red)
+                    .WithTimestamp(build.GetStartTime());
+            }
+            else if (build.IsStarted())
+            {
+                embed.WithDescription("Building...")
+                    .WithColor(DiscordColor.Orange)
                     .WithTimestamp(build.GetStartTime());
             }
             else
@@ -88,6 +93,16 @@ namespace UnrealBuildTool.Services
             }
             
             embed.AddField("**__Stages__**", sb.ToString()).Build();
+
+            if (build.IsFailed())
+            {
+                var failedStage = build.GetStages().FirstOrDefault(s => s.StageResult == StageResult.Failed);
+
+                if (failedStage != null)
+                {
+                    embed.AddField("**__Failure Reason__**", failedStage.FailureReason ?? "None specified.");
+                }
+            }
             
             return embed;
         }

@@ -134,10 +134,20 @@ namespace UnrealBuildTool.Build
                 OnStagedChanged();
 
                 var stage = _stages[_currentStage];
+                OnConsoleOutput($"UBT: Starting stage '{stage.GetName()}'");
+
                 stage.OnConsoleOut += OnConsoleOutput;
                 stage.OnConsoleError += OnConsoleError;
 
-                stage.StageResult = await stage.DoTaskAsync();
+                try
+                {
+                    stage.StageResult = await stage.DoTaskAsync();
+                }
+                catch (Exception e)
+                {
+                    stage.StageResult = StageResult.Failed;
+                    stage.FailureReason = "An exception has occured during execution: " + e.Message;
+                }
 
                 stage.OnConsoleOut -= OnConsoleOutput;
                 stage.OnConsoleError -= OnConsoleError;

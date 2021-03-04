@@ -14,7 +14,7 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            return "Cleaning up Binaries and Intermediate folders";
+            return "Clean up Binaries and Intermediate folders";
         }
 
         public override Task<StageResult> DoTaskAsync()
@@ -27,14 +27,24 @@ namespace UnrealBuildTool.Build.Stages
             if (Directory.Exists(binariesPath))
             {
                 Directory.Delete(binariesPath, true);
+                OnConsoleOut("Deleted Binaries folder.");
+            }
+            else
+            {
+                OnConsoleOut("No Binaries folder to delete.");
             }
 
             if (Directory.Exists(intermediatePath))
             {
+                OnConsoleOut("Deleted Intermediate folder.");
                 Directory.Delete(intermediatePath, true);
             }
+            else
+            {
+                OnConsoleOut("No Intermediate folder to delete.");
+            }
 
-            return Task.FromResult<StageResult>(StageResult.Successful);
+            return Task.FromResult(StageResult.Successful);
         }
     }
 }

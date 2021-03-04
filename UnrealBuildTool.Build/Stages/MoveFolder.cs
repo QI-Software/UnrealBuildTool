@@ -13,8 +13,8 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue<string>("Target", out var target);
             TryGetConfigValue<string>("Destination", out var destination);
 
-            target = target.Replace(@"\", "/").Replace("//", "/");
-            destination = destination.Replace(@"\", "/").Replace("//", "/");
+            target = target.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
+            destination = destination.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
 
             if (target.Contains("/"))
             {

@@ -27,6 +27,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("GameConfiguration", typeof(string), "Shipping");
             AddDefaultConfigurationKey("GamePlatform", typeof(string), "Win64");
             AddDefaultConfigurationKey("GameTarget", typeof(string), "TargetProject");
+            AddDefaultConfigurationKey("MSBuildPath", typeof(string), "/Path/To/MSBuild.exe");
         }
 
         public override Task<StageResult> DoTaskAsync()
@@ -36,6 +37,7 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue<string>("GameConfiguration", out var config);
             TryGetConfigValue<string>("GamePlatform", out var platform);
             TryGetConfigValue<string>("GameTarget", out var target);
+            TryGetConfigValue<string>("MSBuildPath", out var msbuildPath);
 
             //var manifestPath = $"{BuildConfig.EngineDirectory}/Engine/Intermediate/Build/Manifest.xml";
             //manifestPath = manifestPath.Replace("//", "/").Replace(@"\", "/");
@@ -107,7 +109,6 @@ namespace UnrealBuildTool.Build.Stages
 
             var msbuildArguments = new[]
             {
-                "MSBuild",
                 $"\"{BuildConfig.GetProjectFilePath()}\"",
                 $"-p:Configuration=\"{config}\"",
                 $"/property:Platform=\"{platform}\"",
@@ -118,8 +119,8 @@ namespace UnrealBuildTool.Build.Stages
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = "/C " + string.Join(' ', msbuildArguments),
+                    FileName = msbuildPath,
+                    Arguments = string.Join(' ', msbuildArguments),
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -162,6 +163,24 @@ namespace UnrealBuildTool.Build.Stages
             }
             
             return Task.CompletedTask;
+        }
+        
+        public override bool IsStageConfigurationValid(out string ErrorMessage)
+        {
+            if (!base.IsStageConfigurationValid(out ErrorMessage))
+            {
+                return false;
+            }
+            
+            TryGetConfigValue<string>("MSBuildPath", out var msbuildPath);
+            if (!File.Exists(msbuildPath))
+            {
+                ErrorMessage = $"Could not locate MSBuild.exe at '{msbuildPath}'.";
+                return false;
+            }
+
+            ErrorMessage = null;
+            return true;
         }
     }
 }

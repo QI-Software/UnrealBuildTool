@@ -52,7 +52,7 @@ namespace UnrealBuildTool.Build
         /// <summary>
         /// The result of this stage.
         /// </summary>
-        public StageResult StageResult { get; set; } = StageResult.Running;
+        public StageResult StageResult { get; set; } = StageResult.Scheduled;
 
         /// <summary>
         /// Is the set stage configuration valid? 

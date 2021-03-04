@@ -134,6 +134,7 @@ namespace UnrealBuildTool.Build
                 OnStagedChanged();
 
                 var stage = _stages[_currentStage];
+                stage.StageResult = StageResult.Running;
                 OnConsoleOutput($"UBT: Starting stage '{stage.GetName()}'");
 
                 stage.OnConsoleOut += OnConsoleOutput;
@@ -154,6 +155,7 @@ namespace UnrealBuildTool.Build
 
                 if (stage.StageResult == StageResult.Running)
                 {
+                    stage.FailureReason = "Stage returned 'Running' stage result, and was failed for it.";
                     stage.StageResult = StageResult.Failed;
                 }
                 

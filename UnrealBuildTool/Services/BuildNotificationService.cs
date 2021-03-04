@@ -110,37 +110,27 @@ namespace UnrealBuildTool.Services
             bool lastUpdate = false;
             while (_currentBuild != null && _buildOutputMessage != null)
             {
-                int fullLength = 0;
-
                 ArrayList Sync = ArrayList.Synchronized(_currentOutput);
+                var sb = new StringBuilder();
 
                 foreach (var obj in Sync)
                 {
                     if (obj is string s)
                     {
-                        fullLength += s.Length;
+                        sb.AppendLine(s);
                     }
                 }
-
-                while (fullLength > 1950)
+                
+                while (sb.ToString().Length > 1990)
                 {
-                    fullLength = 0;
                     Sync.RemoveAt(0);
+                    sb = new StringBuilder();
                     foreach (var obj in Sync)
                     {
                         if (obj is string s)
                         {
-                            fullLength += s.Length;
+                            sb.AppendLine(s);
                         }
-                    }
-                }
-
-                var sb = new StringBuilder();
-                foreach (var s in Sync)
-                {
-                    if (s is string str)
-                    {
-                        sb.AppendLine(str);
                     }
                 }
 
@@ -149,7 +139,15 @@ namespace UnrealBuildTool.Services
                 
                 if (content != _buildOutputMessage.Content || _buildOutputMessage.Embeds[0] != embed)
                 {
-                    await _buildOutputMessage.ModifyAsync(content, embed);
+                    try
+                    {
+                        await _buildOutputMessage.ModifyAsync(content, embed);
+
+                    }
+                    catch (Exception e)
+                    {
+                        _log.Error(LogCategory + $"Failed to update build output message: {e.Message}");
+                    }
                 }
 
                 if (lastUpdate)
@@ -163,8 +161,9 @@ namespace UnrealBuildTool.Services
                 }
                 catch (TaskCanceledException)
                 {
-                    lastUpdate = true;
                 }
+
+                lastUpdate = _backgroundOutputSource.IsCancellationRequested;
             }
             
             _log.Information(LogCategory + "Stopped console output handler.");

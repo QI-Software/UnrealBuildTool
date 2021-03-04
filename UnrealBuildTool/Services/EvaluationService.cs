@@ -31,6 +31,7 @@ namespace UnrealBuildTool.Services
             "System.Math",
             "System.Reflection",
             "System.Runtime",
+            "System.Text",
             "System.Threading.Tasks",
             "UnrealBuildTool",
             "UnrealBuildTool.Services",

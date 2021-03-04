@@ -2,6 +2,7 @@
 {
     public enum StageResult
     {
+        Scheduled,
         Running,
         Successful,
         SuccessfulWithWarnings,

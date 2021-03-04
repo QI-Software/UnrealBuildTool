@@ -125,7 +125,7 @@ namespace UnrealBuildTool.Services
                 while (fullLength > 1950)
                 {
                     fullLength = 0;
-                    Sync.RemoveAt(_currentOutput.Count - 1);
+                    Sync.RemoveAt(0);
                     foreach (var obj in Sync)
                     {
                         if (obj is string s)

@@ -71,15 +71,13 @@ namespace UnrealBuildTool.Services
             _currentOutput.Add(data);
         }
 
-        public async Task OnBuildCompletedAsync()
+        public void OnBuildCompleted()
         {
             _backgroundOutputSource.Cancel();
-            
-            _currentBuild = null;
             _backgroundOutputTask = null;
         }
 
-        public async Task OnBuildFailedAsync()
+        public void OnBuildFailed()
         {
             if (_currentBuild == null)
             {
@@ -87,8 +85,6 @@ namespace UnrealBuildTool.Services
             }
             
             _backgroundOutputSource.Cancel();
-            
-            _currentBuild = null;
             _backgroundOutputTask = null;
         }
 
@@ -142,7 +138,6 @@ namespace UnrealBuildTool.Services
                     try
                     {
                         await _buildOutputMessage.ModifyAsync(content, embed);
-
                     }
                     catch (Exception e)
                     {
@@ -155,18 +150,12 @@ namespace UnrealBuildTool.Services
                     break;
                 }
 
-                try
-                {
-                    await Task.Delay(1000, _backgroundOutputSource.Token); // Update every 1.5 seconds.
-                }
-                catch (TaskCanceledException)
-                {
-                }
-
+                await Task.Delay(1000);
                 lastUpdate = _backgroundOutputSource.IsCancellationRequested;
             }
             
             _log.Information(LogCategory + "Stopped console output handler.");
+            _currentBuild = null;
             _buildOutputMessage = null;
         }
     }

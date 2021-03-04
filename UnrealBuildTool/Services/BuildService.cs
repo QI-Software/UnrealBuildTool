@@ -269,15 +269,15 @@ namespace UnrealBuildTool.Services
             return true;
         }
 
-        private async void OnBuildFailed(BuildStage failedStage)
+        private void OnBuildFailed(BuildStage failedStage)
         {
-            await _buildNotifier.OnBuildFailedAsync();
+            _buildNotifier.OnBuildFailed();
             _currentBuild = null;
         }
 
-        private async void OnBuildCompleted()
+        private void OnBuildCompleted()
         {
-            await _buildNotifier.OnBuildCompletedAsync();
+            _buildNotifier.OnBuildCompleted();
             _currentBuild = null;
         }
 

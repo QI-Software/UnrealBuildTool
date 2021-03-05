@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
@@ -29,7 +30,12 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue<string>("BatchFile", out var batchFile);
             TryGetConfigValue<string>("Arguments", out var arguments);
 
-            OnConsoleOut("UBT: Running command: " + batchFile);
+            OnConsoleOut("UBT: Running batch file: " + batchFile);
+            if (!File.Exists(batchFile))
+            {
+                FailureReason = $"Could not find batch file '{batchFile}'";
+                return Task.FromResult(StageResult.Failed);
+            }
             
             _batchProcess = new Process
             {

@@ -32,85 +32,15 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            var ubtPath = BuildConfig.GetUnrealBuildToolPath();
-
             TryGetConfigValue<string>("GameConfiguration", out var config);
             TryGetConfigValue<string>("GamePlatform", out var platform);
             TryGetConfigValue<string>("GameTarget", out var target);
             TryGetConfigValue<string>("MSBuildPath", out var msbuildPath);
-
-            //var manifestPath = $"{BuildConfig.EngineDirectory}/Engine/Intermediate/Build/Manifest.xml";
-            //manifestPath = manifestPath.Replace("//", "/").Replace(@"\", "/");
             
-            var ubtArguments = new[]
-            {
-                config,
-                platform,
-                $"-Project=\"{BuildConfig.GetProjectFilePath()}\"",
-                "-TargetType=Game",
-                $"\"{BuildConfig.GetProjectFilePath()}\"",
-                //$"-Manifest=\"{manifestPath}\"",
-                "-Progress",
-                "-NoHotReloadFromIDE",
-            };
-
-            /*var ubtPath = $"{BuildConfig.EngineDirectory}/Engine/Build/BatchFiles/Build.bat"
-                .Replace(@"\", "/")
-                .Replace("//", "/");
-
-            if (!File.Exists(ubtPath))
-            {
-                FailureReason = $"Could not find Build.bat at {ubtPath}";
-                return Task.FromResult(StageResult.Failed);
-            }
-            
-            var ubtArguments = new[]
-            {
-                $"-Target=\"{target} {platform} {config} -Project=\\\"{BuildConfig.GetProjectFilePath()}\\\"\"",
-                //$"-Target=\"ShaderCompilerWorker {platform} Development -Quiet\"",
-                "-Progress",
-                "-WaitMutex",
-                "-FromMsBuild",
-                "-TargetType=Game",
-                $"\"{BuildConfig.GetProjectFilePath()}\"",
-                $"-Manifest=\"{manifestPath}\""
-            };*/
-            
-            /*_ubtProcess = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = ubtPath,
-                    Arguments = string.Join(" ", ubtArguments),
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                }
-            };
-            OnConsoleOut("UBT: Running compile with command line: " + _ubtProcess.StartInfo.Arguments);
-            
-            _ubtProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-            _ubtProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
-            _ubtProcess.Start();
-            _ubtProcess.BeginOutputReadLine();
-            _ubtProcess.BeginErrorReadLine();
-            _ubtProcess.WaitForExit();
-
-            if (IsCancelled)
-            {
-                return Task.FromResult(StageResult.Failed);
-            }
-
-            if (_ubtProcess.ExitCode != 0)
-            {
-                FailureReason = $"UnrealBuildTool.exe failed with exit code {_ubtProcess.ExitCode}";
-                return Task.FromResult(StageResult.Failed);
-            }*/
-
             var msbuildArguments = new[]
             {
                 $"\"{BuildConfig.GetSolutionFilePath()}\"",
-                $"-p:Configuration=\"{config}\"",
+                $"-p:Configuration=\"Development Editor\"",
                 $"/property:Platform=\"{platform}\"",
             };
 
@@ -145,7 +75,76 @@ namespace UnrealBuildTool.Build.Stages
                 FailureReason = $"MSBuild.exe failed with exit code {_msbuildProcess.ExitCode}";
                 return Task.FromResult(StageResult.Failed);
             }
+
+            //var manifestPath = $"{BuildConfig.EngineDirectory}/Engine/Intermediate/Build/Manifest.xml";
+            //manifestPath = manifestPath.Replace("//", "/").Replace(@"\", "/");
             
+            var ubtPath = BuildConfig.GetUnrealBuildToolPath();
+            var ubtArguments = new[]
+            {
+                config,
+                platform,
+                $"-Project=\"{BuildConfig.GetProjectFilePath()}\"",
+                "-TargetType=Game",
+                $"\"{BuildConfig.GetProjectFilePath()}\"",
+                //$"-Manifest=\"{manifestPath}\"",
+                "-Progress",
+                "-NoHotReloadFromIDE",
+            };
+
+            /*var ubtPath = $"{BuildConfig.EngineDirectory}/Engine/Build/BatchFiles/Build.bat"
+                .Replace(@"\", "/")
+                .Replace("//", "/");
+
+            if (!File.Exists(ubtPath))
+            {
+                FailureReason = $"Could not find Build.bat at {ubtPath}";
+                return Task.FromResult(StageResult.Failed);
+            }
+            
+            var ubtArguments = new[]
+            {
+                $"-Target=\"{target} {platform} {config} -Project=\\\"{BuildConfig.GetProjectFilePath()}\\\"\"",
+                //$"-Target=\"ShaderCompilerWorker {platform} Development -Quiet\"",
+                "-Progress",
+                "-WaitMutex",
+                "-FromMsBuild",
+                "-TargetType=Game",
+                $"\"{BuildConfig.GetProjectFilePath()}\"",
+                $"-Manifest=\"{manifestPath}\""
+            };*/
+            
+            _ubtProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = ubtPath,
+                    Arguments = string.Join(" ", ubtArguments),
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                }
+            };
+            OnConsoleOut("UBT: Running compile with command line: " + _ubtProcess.StartInfo.Arguments);
+            
+            _ubtProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+            _ubtProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _ubtProcess.Start();
+            _ubtProcess.BeginOutputReadLine();
+            _ubtProcess.BeginErrorReadLine();
+            _ubtProcess.WaitForExit();
+
+            if (IsCancelled)
+            {
+                return Task.FromResult(StageResult.Failed);
+            }
+
+            if (_ubtProcess.ExitCode != 0)
+            {
+                FailureReason = $"UnrealBuildTool.exe failed with exit code {_ubtProcess.ExitCode}";
+                return Task.FromResult(StageResult.Failed);
+            }
+
             return Task.FromResult(StageResult.Successful);
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace UnrealBuildTool.Build
@@ -60,6 +61,20 @@ namespace UnrealBuildTool.Build
         public string GetUnrealBuildToolPath()
         {
             return $"{EngineDirectory}/Engine/Binaries/DotNET/UnrealBuildTool.exe".Replace("//", "/");
+        }
+
+        private static List<string> _configurations = new List<string>()
+        {
+            "Shipping",
+            "Debug",
+            "DebugGame",
+            "Development",
+            "Test",
+        };
+        
+        public static bool IsValidConfiguration(string configuration)
+        {
+            return _configurations.Any(a => a == configuration);
         }
     }
 }

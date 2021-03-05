@@ -128,5 +128,24 @@ namespace UnrealBuildTool.Build.Stages
             
             return Task.CompletedTask;
         }
+
+        public override bool IsStageConfigurationValid(out string ErrorMessage)
+        {
+            if (!base.IsStageConfigurationValid(out ErrorMessage))
+            {
+                return false;
+            }
+            
+            TryGetConfigValue<string>("GameConfiguration", out var gameConfig);
+            
+            if (!BuildConfiguration.IsValidConfiguration(gameConfig))
+            {
+                ErrorMessage = $"Invalid game configuration '{gameConfig}'";
+                return false;
+            }
+
+            ErrorMessage = null;
+            return true;
+        }
     }
 }

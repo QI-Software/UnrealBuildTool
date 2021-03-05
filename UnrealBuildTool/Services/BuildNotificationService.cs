@@ -115,21 +115,11 @@ namespace UnrealBuildTool.Services
             bool lastUpdate = false;
             while (_currentBuild != null && _buildOutputMessage != null)
             {
-                ArrayList Sync = ArrayList.Synchronized(_currentOutput);
-                var sb = new StringBuilder();
+                try
+                {
+                    ArrayList Sync = ArrayList.Synchronized(_currentOutput);
+                    var sb = new StringBuilder();
 
-                foreach (var obj in Sync)
-                {
-                    if (obj is string s)
-                    {
-                        sb.AppendLine(s);
-                    }
-                }
-                
-                while (sb.ToString().Length > 1990)
-                {
-                    Sync.RemoveAt(0);
-                    sb = new StringBuilder();
                     foreach (var obj in Sync)
                     {
                         if (obj is string s)
@@ -137,30 +127,47 @@ namespace UnrealBuildTool.Services
                             sb.AppendLine(s);
                         }
                     }
-                }
-
-                var content = Formatter.BlockCode(sb.ToString());
-                var embed = _embed.LiveBuildStatus(_currentBuild);
                 
-                if (content != _buildOutputMessage.Content || _buildOutputMessage.Embeds[0] != embed)
-                {
-                    try
+                    while (sb.ToString().Length > 1990)
                     {
-                        await _buildOutputMessage.ModifyAsync(content, embed);
+                        Sync.RemoveAt(0);
+                        sb = new StringBuilder();
+                        foreach (var obj in Sync)
+                        {
+                            if (obj is string s)
+                            {
+                                sb.AppendLine(s);
+                            }
+                        }
                     }
-                    catch (Exception e)
+
+                    var content = Formatter.BlockCode(sb.ToString());
+                    var embed = _embed.LiveBuildStatus(_currentBuild);
+                
+                    if (content != _buildOutputMessage.Content || _buildOutputMessage.Embeds[0] != embed)
                     {
-                        _log.Error(LogCategory + $"Failed to update build output message: {e.Message}");
+                        try
+                        {
+                            await _buildOutputMessage.ModifyAsync(content, embed);
+                        }
+                        catch (Exception e)
+                        {
+                            _log.Error(LogCategory + $"Failed to update build output message: {e.Message}");
+                        }
                     }
-                }
 
-                if (lastUpdate)
+                    if (lastUpdate)
+                    {
+                        break;
+                    }
+
+                    await Task.Delay(1000);
+                    lastUpdate = _backgroundOutputSource.IsCancellationRequested;
+                }
+                catch (Exception ex)
                 {
-                    break;
+                    _log.Error(LogCategory + "An error has occured while handling console output. This is non fatal: " + ex.Message);
                 }
-
-                await Task.Delay(1000);
-                lastUpdate = _backgroundOutputSource.IsCancellationRequested;
             }
             
             _log.Information(LogCategory + "Stopped console output handler.");

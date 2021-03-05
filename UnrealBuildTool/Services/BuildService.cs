@@ -209,6 +209,18 @@ namespace UnrealBuildTool.Services
                     _log.Warning(LogCategory + $"Build configuration '{config.Name}' has no .uproject file at set location, ignoring.");
                     continue;
                 }
+                
+                if (string.IsNullOrWhiteSpace(config.SolutionFile))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' has null or empty solution file, ignoring.");
+                    continue;
+                }
+
+                if (!config.SolutionFile.ToLower().EndsWith(".sln"))
+                {
+                    _log.Warning(LogCategory + $"Build configuration '{config.Name}' has invalid solution file, ignoring.");
+                    continue;
+                }
 
                 if (!Directory.Exists(config.EngineDirectory))
                 {

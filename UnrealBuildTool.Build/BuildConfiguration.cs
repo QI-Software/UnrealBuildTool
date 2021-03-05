@@ -28,6 +28,12 @@ namespace UnrealBuildTool.Build
         /// </summary>
         [JsonProperty]
         public string ProjectFile { get; protected set; }
+        
+        /// <summary>
+        /// Name of the .sln file in the project's directory.
+        /// </summary>
+        [JsonProperty]
+        public string SolutionFile { get; protected set; }
 
         /// <summary>
         /// Absolute path to the engine's directory.
@@ -44,6 +50,11 @@ namespace UnrealBuildTool.Build
         public string GetProjectFilePath()
         {
             return $"{ProjectDirectory}/{ProjectFile}".Replace("//", "/");
+        }
+        
+        public string GetSolutionFilePath()
+        {
+            return $"{ProjectDirectory}/{SolutionFile}".Replace("//", "/");
         }
 
         public string GetUnrealBuildToolPath()

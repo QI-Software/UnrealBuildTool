@@ -109,7 +109,7 @@ namespace UnrealBuildTool.Build.Stages
 
             var msbuildArguments = new[]
             {
-                $"\"{BuildConfig.GetProjectFilePath()}\"",
+                $"\"{BuildConfig.GetSolutionFilePath()}\"",
                 $"-p:Configuration=\"{config}\"",
                 $"/property:Platform=\"{platform}\"",
                 "<",

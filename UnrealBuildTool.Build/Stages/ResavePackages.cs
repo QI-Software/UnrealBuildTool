@@ -57,7 +57,6 @@ namespace UnrealBuildTool.Build.Stages
                     RedirectStandardError = true,
                     UseShellExecute = false,
                 },
-                PriorityClass = ProcessPriorityClass.High,
             };
             
             _uatProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);

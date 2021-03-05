@@ -112,8 +112,6 @@ namespace UnrealBuildTool.Build.Stages
                 $"\"{BuildConfig.GetSolutionFilePath()}\"",
                 $"-p:Configuration=\"{config}\"",
                 $"/property:Platform=\"{platform}\"",
-                "<",
-                "nul"
             };
 
             OnConsoleOut($"UBT: Running MSBuild.exe with arguments: '{string.Join(' ', msbuildArguments)}'");

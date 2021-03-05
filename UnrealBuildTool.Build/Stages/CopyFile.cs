@@ -25,7 +25,7 @@ namespace UnrealBuildTool.Build.Stages
             if (destination.Contains("/"))
             {
                 var splitDest = destination.Split("/");
-                destination = splitDest.Take(splitDest.Length - 1).Aggregate((curr, next) => curr + next);
+                destination = splitDest.Take(splitDest.Length - 1).Aggregate((curr, next) => $"{curr}/{next}");
             }
 
             return $"Copy file '{target}' to '{destination}'";

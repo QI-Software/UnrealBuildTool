@@ -16,8 +16,14 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue<string>("GameConfiguration", out var config);
             TryGetConfigValue<string>("GamePlatform", out var platform);
             TryGetConfigValue<string>("GameTarget", out var target);
+            TryGetConfigValue<bool>("CompileGame", out var compileGame);
+
+            if (compileGame)
+            {
+                return $"Compile '{target}' with configuration [{config} | {platform}]";
+            }
             
-            return $"Compile '{target}' with configuration [{config} | {platform}]";
+            return $"Compile '{target}' with configuration 'Development Editor'";
         }
 
         public override void GenerateDefaultStageConfiguration()
@@ -184,7 +190,14 @@ namespace UnrealBuildTool.Build.Stages
             
             TryGetConfigValue<string>("MSBuildPath", out var msbuildPath);
             TryGetConfigValue<bool>("CompileEditor", out var compileEditor);
+            TryGetConfigValue<bool>("CompileGame", out var compileGame);
 
+            if (!compileEditor && !compileGame)
+            {
+                ErrorMessage = "CompileEditor and CompileGame cannot both be false.";
+                return false;
+            }
+            
             if (compileEditor && !File.Exists(msbuildPath))
             {
                 ErrorMessage = $"Could not locate MSBuild.exe at '{msbuildPath}'.";

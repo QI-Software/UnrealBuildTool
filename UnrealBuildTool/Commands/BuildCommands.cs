@@ -32,7 +32,7 @@ namespace UnrealBuildTool.Commands
             }
 
             var build = _buildService.GetCurrentBuild();
-            var seconds = (DateTimeOffset.Now - build.GetStartTime()).TotalSeconds;
+            var seconds = Math.Floor((DateTimeOffset.Now - build.GetStartTime()).TotalSeconds);
 
             await ctx.RespondAsync(_embed.Message(
                 $"Currently running {build.GetConfiguration().Name}. Time elapsed: {seconds}s", DiscordColor.Green));

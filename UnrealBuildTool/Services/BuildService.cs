@@ -283,6 +283,7 @@ namespace UnrealBuildTool.Services
             _currentBuild.OnConsoleError += OnConsoleError;
             _currentBuild.OnCompleted += OnBuildCompleted;
             _currentBuild.OnFailed += OnBuildFailed;
+            _currentBuild.OnCancelled += OnBuildCancelled;
             
             // Create the build status and output log messages on Discord.
             var task = _buildNotifier.InitializeBuildNotifications(_currentBuild);

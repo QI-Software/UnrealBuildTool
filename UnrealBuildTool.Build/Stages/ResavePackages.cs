@@ -34,7 +34,6 @@ namespace UnrealBuildTool.Build.Stages
             var arguments = new[]
             {
                 "ResavePackages",
-                "-nop4",
                 $"-project=\"{BuildConfig.GetProjectFilePath()}\"",
                 $"-ue4exe=\"{ue4cmd}\"",
                 "-CrashReporter",

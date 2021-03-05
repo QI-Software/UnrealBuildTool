@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
 {
-    public class RunBatchFile : BuildStage
+    public class RunFile : BuildStage
     {
-        private Process _batchProcess;
-        public override string GetName() => "RunBatchFile";
+        private Process _fileProcess;
+        public override string GetName() => "RunFile";
 
         public override string GetDescription()
         {
@@ -20,28 +20,28 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("BatchFile", typeof(string), "YourFile.bat");
+            AddDefaultConfigurationKey("File", typeof(string), "YourFile.exe");
             AddDefaultConfigurationKey("Arguments", typeof(string), "");
             AddDefaultConfigurationKey("Description", typeof(string), "Run console command.");
         }
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("BatchFile", out var batchFile);
+            TryGetConfigValue<string>("File", out var file);
             TryGetConfigValue<string>("Arguments", out var arguments);
 
-            OnConsoleOut("UBT: Running batch file: " + batchFile);
-            if (!File.Exists(batchFile))
+            OnConsoleOut($"UBT: Running file with arguments: '{file} {arguments}'");
+            if (!File.Exists(file))
             {
-                FailureReason = $"Could not find batch file '{batchFile}'";
+                FailureReason = $"Could not find file '{file}'";
                 return Task.FromResult(StageResult.Failed);
             }
             
-            _batchProcess = new Process
+            _fileProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = batchFile,
+                    FileName = file,
                     Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -49,18 +49,18 @@ namespace UnrealBuildTool.Build.Stages
                 }
             };
             
-            _batchProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _fileProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
 
             try
             {
-                _batchProcess.Start();
-                _batchProcess.BeginOutputReadLine();
-                _batchProcess.BeginErrorReadLine();
-                _batchProcess.WaitForExit();
+                _fileProcess.Start();
+                _fileProcess.BeginOutputReadLine();
+                _fileProcess.BeginErrorReadLine();
+                _fileProcess.WaitForExit();
             }
             catch (Exception e)
             {
-                FailureReason = "An exception occurred while running the batch file: " + e.Message;
+                FailureReason = "An exception occurred while running the file: " + e.Message;
                 return Task.FromResult(StageResult.Failed);
             }
 
@@ -69,9 +69,9 @@ namespace UnrealBuildTool.Build.Stages
                 return Task.FromResult(StageResult.Failed);
             }
 
-            if (_batchProcess.ExitCode != 0)
+            if (_fileProcess.ExitCode != 0)
             {
-                FailureReason = $"Batch file failed with exit code {_batchProcess.ExitCode}";
+                FailureReason = $"Process failed with exit code {_fileProcess.ExitCode}";
                 return Task.FromResult(StageResult.Failed);
             }
 
@@ -82,9 +82,9 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.OnCancellationRequestedAsync();
 
-            if (_batchProcess != null && !_batchProcess.HasExited)
+            if (_fileProcess != null && !_fileProcess.HasExited)
             {
-                _batchProcess.Kill(true);
+                _fileProcess.Kill(true);
             }
             
             return Task.CompletedTask;

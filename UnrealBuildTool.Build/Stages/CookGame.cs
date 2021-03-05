@@ -93,7 +93,8 @@ namespace UnrealBuildTool.Build.Stages
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
-                }
+                },
+                PriorityClass = ProcessPriorityClass.High,
             };
             
             _uatProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
@@ -123,7 +124,7 @@ namespace UnrealBuildTool.Build.Stages
 
             if (_uatProcess != null && !_uatProcess.HasExited)
             {
-                _uatProcess.Kill();
+                _uatProcess.Kill(true);
             }
             
             return Task.CompletedTask;

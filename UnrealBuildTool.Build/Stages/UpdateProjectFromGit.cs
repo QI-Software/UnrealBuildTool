@@ -200,32 +200,27 @@ namespace UnrealBuildTool.Build.Stages
 
             if (_cleanProcess != null && !_cleanProcess.HasExited)
             {
-                _cleanProcess.Kill();
+                _cleanProcess.Kill(true);
             }
             
             if (_resetProcess != null && !_resetProcess.HasExited)
             {
-                _resetProcess.Kill();
+                _resetProcess.Kill(true);
             }
             
             if (_pruneProcess != null && !_pruneProcess.HasExited)
             {
-                _pruneProcess.Kill();
+                _pruneProcess.Kill(true);
             }
             
             if (_fetchProcess != null && !_fetchProcess.HasExited)
             {
-                _fetchProcess.Kill();
+                _fetchProcess.Kill(true);
             }
             
             if (_pullProcess != null && !_pullProcess.HasExited)
             {
-                _pullProcess.Kill();
-            }
-            
-            foreach (var process in Process.GetProcessesByName("git.exe"))
-            {
-                process.Kill();
+                _pullProcess.Kill(true);
             }
 
             return Task.CompletedTask;

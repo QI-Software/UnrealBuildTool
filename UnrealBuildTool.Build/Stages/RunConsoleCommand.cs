@@ -76,7 +76,7 @@ namespace UnrealBuildTool.Build.Stages
 
             if (_cmdProcess != null && !_cmdProcess.HasExited)
             {
-                _cmdProcess.Kill();
+                _cmdProcess.Kill(true);
             }
             
             return Task.CompletedTask;

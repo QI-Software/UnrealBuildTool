@@ -22,10 +22,10 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("GamePlatform", typeof(string), "Win64");
-            AddDefaultConfigurationKey("GameConfiguration", typeof(string), "Shipping");
-            AddDefaultConfigurationKey("GameTarget", typeof(string), "TargetProject");
-            AddDefaultConfigurationKey("IsServer", typeof(bool), false);
+            AddDefaultConfigurationKey("GamePlatform", "Win64");
+            AddDefaultConfigurationKey("GameConfiguration", "Shipping");
+            AddDefaultConfigurationKey("GameTarget", "TargetProject");
+            AddDefaultConfigurationKey("IsServer", false);
         }
 
         public override Task<StageResult> DoTaskAsync()

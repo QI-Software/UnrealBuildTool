@@ -19,8 +19,8 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("Command", typeof(string), "echo \"Don't forget to set a command!\"");
-            AddDefaultConfigurationKey("Description", typeof(string), "Run console command.");
+            AddDefaultConfigurationKey("Command", "echo \"Don't forget to set a command!\"");
+            AddDefaultConfigurationKey("Description", "Run console command.");
         }
 
         public override Task<StageResult> DoTaskAsync()

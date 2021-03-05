@@ -34,8 +34,8 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("ProcessName", typeof(string), "");
-            AddDefaultConfigurationKey("KillChildren", typeof(bool), true);
+            AddDefaultConfigurationKey("ProcessName", "");
+            AddDefaultConfigurationKey("KillChildren", true);
         }
 
         public override Task<StageResult> DoTaskAsync()

@@ -33,8 +33,8 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("Target", typeof(string), "");
-            AddDefaultConfigurationKey("Destination", typeof(string), "");
+            AddDefaultConfigurationKey("Target", "");
+            AddDefaultConfigurationKey("Destination",  "");
         }
 
         public override Task<StageResult> DoTaskAsync()

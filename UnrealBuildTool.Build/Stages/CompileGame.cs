@@ -30,12 +30,12 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("GameConfiguration", typeof(string), "Shipping");
-            AddDefaultConfigurationKey("GamePlatform", typeof(string), "Win64");
-            AddDefaultConfigurationKey("GameTarget", typeof(string), "TargetProject");
-            AddDefaultConfigurationKey("CompileEditor", typeof(bool), true);
-            AddDefaultConfigurationKey("CompileGame", typeof(bool), true);
-            AddDefaultConfigurationKey("MSBuildPath", typeof(string), "MSBuild.exe");
+            AddDefaultConfigurationKey("GameConfiguration", "Shipping");
+            AddDefaultConfigurationKey("GamePlatform", "Win64");
+            AddDefaultConfigurationKey("GameTarget", "TargetProject");
+            AddDefaultConfigurationKey("CompileEditor", true);
+            AddDefaultConfigurationKey("CompileGame", true);
+            AddDefaultConfigurationKey("MSBuildPath", "MSBuild.exe");
         }
 
         public override Task<StageResult> DoTaskAsync()

@@ -21,10 +21,10 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("File", typeof(string), "YourFile.exe");
-            AddDefaultConfigurationKey("Arguments", typeof(string), "");
-            AddDefaultConfigurationKey("Description", typeof(string), "Run console command.");
-            AddDefaultConfigurationKey("UseShellExecute", typeof(bool), true);
+            AddDefaultConfigurationKey("File",  "YourFile.exe");
+            AddDefaultConfigurationKey("Arguments",  "");
+            AddDefaultConfigurationKey("Description", "Run console command.");
+            AddDefaultConfigurationKey("UseShellExecute", true);
         }
 
         public override Task<StageResult> DoTaskAsync()

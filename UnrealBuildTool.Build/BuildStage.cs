@@ -92,19 +92,14 @@ namespace UnrealBuildTool.Build
             _defaultStageConfig = new List<StageConfigurationKey>();
         }
 
-        public void AddDefaultConfigurationKey(string keyName, Type type, object defaultValue)
+        public void AddDefaultConfigurationKey<T>(string keyName, T defaultValue)
         {
             if (string.IsNullOrWhiteSpace(keyName))
             {
                 throw new ArgumentException($"Argument '{nameof(keyName)}' cannot be null or whitespace.");
             }
 
-            if (type == null)
-            {
-                throw new ArgumentNullException($"Argument '{nameof(type)}' cannot be null.");
-            }
-            
-            var defaultKey = new StageConfigurationKey(keyName, type, defaultValue);
+            var defaultKey = new StageConfigurationKey(keyName, typeof(T), defaultValue);
             _defaultStageConfig.Add(defaultKey);
             StageConfiguration.Add(keyName, defaultValue);
         }

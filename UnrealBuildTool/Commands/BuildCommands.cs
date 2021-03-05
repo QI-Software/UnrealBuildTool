@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
@@ -21,7 +22,7 @@ namespace UnrealBuildTool.Commands
             _buildService = buildService;
             _embed = embed;
         }
-        
+
         [Command("status")]
         public async Task GetStatus(CommandContext ctx)
         {
@@ -45,12 +46,71 @@ namespace UnrealBuildTool.Commands
 
             if (configs.Count == 0)
             {
-                await ctx.RespondAsync(_embed.Message("There are no build configurations available.", DiscordColor.Red));
+                await ctx.RespondAsync(_embed.Message("There are no build configurations available.",
+                    DiscordColor.Red));
                 return;
             }
+
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle("**__Available Configurations__**")
+                .WithColor(DiscordColor.Blurple);
+
+            foreach (var config in configs)
+            {
+                embed.AddField($"**{config.Name}**", config.Description);
+            }
+
+            await ctx.RespondAsync(embed.Build());
+        }
+
+        [Command("configinfo")]
+        [Aliases("info")]
+        public async Task ConfigInfo(CommandContext ctx, [RemainingText] string name)
+        {
+            var configs = _buildService.GetBuildConfigurations();
+
+            var config = configs.FirstOrDefault(c => c.Name.ToLower() == name.ToLower());
+
+            if (config == null)
+            {
+                await ctx.RespondAsync(_embed.Message($"Could not find any configuration with name '{name}'",
+                    DiscordColor.Red));
+                return;
+            }
+
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle($"**__{config.Name}__**")
+                .WithDescription(config.Description)
+                .WithColor(DiscordColor.Blurple);
+
+            foreach (var stage in config.Stages)
+            {
+                if (!_buildService.StageExists(stage.Name))
+                {
+                    continue;
+                }
+
+                var instancedStage = _buildService.InstantiateStage(stage.Name);
+                if (instancedStage == null)
+                {
+                    continue;
+                }
+                
+                instancedStage.GenerateDefaultStageConfiguration();
+                instancedStage.SetStageConfiguration(stage.Configuration);
+                if (!instancedStage.IsStageConfigurationValid(out _))
+                {
+                    continue;
+                }
+
+                embed.AddField($"**__{instancedStage.GetName()}__**", instancedStage.GetDescription());
+            }
+
+            await ctx.RespondAsync(embed.Build());
         }
 
         [Command("reloadconfigs")]
+        [Aliases("reload", "reloadconfig")]
         public async Task ReloadBuildConfigurations(CommandContext ctx)
         {
             if (_buildService.IsBuilding())
@@ -59,7 +119,7 @@ namespace UnrealBuildTool.Commands
                     DiscordColor.Red));
                 return;
             }
-            
+
             await _buildService.LoadBuildConfigurationsAsync();
 
             var count = _buildService.GetBuildConfigurations().Count;
@@ -97,7 +157,7 @@ namespace UnrealBuildTool.Commands
             {
                 sb.AppendLine($"{i + 1} - {configs[i].Name}");
             }
-            
+
             var embed = new DiscordEmbedBuilder()
                 .WithTitle("UnrealBuildTool - Start Build")
                 .WithDescription("Please type the number of the build configuration to run.")
@@ -108,7 +168,7 @@ namespace UnrealBuildTool.Commands
             await ctx.RespondAsync(embed);
 
             var interactivity = ctx.Client.GetInteractivity();
-            
+
             var result =
                 await interactivity.WaitForMessageAsync(m => m.Author.Id == ctx.User.Id, TimeSpan.FromMinutes(1));
 
@@ -131,7 +191,7 @@ namespace UnrealBuildTool.Commands
                 await ctx.RespondAsync(_embed.Message("Please specify a valid number.", DiscordColor.Red));
                 return;
             }
-            
+
             var config = configs[selection];
             var description = config.Description;
 
@@ -185,6 +245,7 @@ namespace UnrealBuildTool.Commands
         }
 
         [Command("cancelbuild")]
+        [Aliases("cancel")]
         public async Task CancelBuild(CommandContext ctx)
         {
             if (!_buildService.IsBuilding())
@@ -198,7 +259,7 @@ namespace UnrealBuildTool.Commands
                 await ctx.RespondAsync(_embed.Message("Cancellation was already requested.", DiscordColor.Red));
                 return;
             }
-            
+
             await _buildService.CancelBuildAsync();
             await ctx.RespondAsync(_embed.Message("Cancellation request successful, please standby.",
                 DiscordColor.Green));

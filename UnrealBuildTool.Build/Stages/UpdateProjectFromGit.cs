@@ -19,9 +19,9 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("RunGitClean", typeof(bool), true);
-            AddDefaultConfigurationKey("RunGitResetHard", typeof(bool), true);
-            AddDefaultConfigurationKey("RunGitLFSPrune", typeof(bool), true);
+            AddDefaultConfigurationKey("RunGitClean",  true);
+            AddDefaultConfigurationKey("RunGitResetHard",  true);
+            AddDefaultConfigurationKey("RunGitLFSPrune", true);
         }
 
         public override Task<StageResult> DoTaskAsync()

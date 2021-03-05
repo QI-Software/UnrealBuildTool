@@ -35,10 +35,10 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("TargetFile", typeof(string), "");
-            AddDefaultConfigurationKey("DestinationFile", typeof(string), "");
-            AddDefaultConfigurationKey("ShouldOverwrite", typeof(bool), true);
-            AddDefaultConfigurationKey("IsCritical", typeof(bool), true);
+            AddDefaultConfigurationKey("TargetFile",  "");
+            AddDefaultConfigurationKey("DestinationFile",  "");
+            AddDefaultConfigurationKey("ShouldOverwrite", true);
+            AddDefaultConfigurationKey("IsCritical",true);
         }
 
         public override Task<StageResult> DoTaskAsync()

@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
 {
-    public class RunConsoleCommand : BuildStage
+    public class RunBatchFile : BuildStage
     {
-        private Process _cmdProcess;
-        public override string GetName() => "RunConsoleCommand";
+        private Process _batchProcess;
+        public override string GetName() => "RunBatchFile";
 
         public override string GetDescription()
         {
@@ -19,39 +19,42 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
-            AddDefaultConfigurationKey("Command", typeof(string), "echo \"Don't forget to set a command!\"");
+            AddDefaultConfigurationKey("BatchFile", typeof(string), "YourFile.bat");
+            AddDefaultConfigurationKey("Arguments", typeof(string), "");
             AddDefaultConfigurationKey("Description", typeof(string), "Run console command.");
         }
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("Command", out var cmd);
-            OnConsoleOut("UBT: Running command: " + cmd);
+            TryGetConfigValue<string>("BatchFile", out var batchFile);
+            TryGetConfigValue<string>("Arguments", out var arguments);
+
+            OnConsoleOut("UBT: Running command: " + batchFile);
             
-            _cmdProcess = new Process
+            _batchProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = "/C " + cmd,
+                    FileName = batchFile,
+                    Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
                 }
             };
             
-            _cmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _batchProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
 
             try
             {
-                _cmdProcess.Start();
-                _cmdProcess.BeginOutputReadLine();
-                _cmdProcess.BeginErrorReadLine();
-                _cmdProcess.WaitForExit();
+                _batchProcess.Start();
+                _batchProcess.BeginOutputReadLine();
+                _batchProcess.BeginErrorReadLine();
+                _batchProcess.WaitForExit();
             }
             catch (Exception e)
             {
-                FailureReason = "An exception occurred while running the command: " + e.Message;
+                FailureReason = "An exception occurred while running the batch file: " + e.Message;
                 return Task.FromResult(StageResult.Failed);
             }
 
@@ -60,9 +63,9 @@ namespace UnrealBuildTool.Build.Stages
                 return Task.FromResult(StageResult.Failed);
             }
 
-            if (_cmdProcess.ExitCode != 0)
+            if (_batchProcess.ExitCode != 0)
             {
-                FailureReason = $"CMD failed with exit code {_cmdProcess.ExitCode}";
+                FailureReason = $"Batch file failed with exit code {_batchProcess.ExitCode}";
                 return Task.FromResult(StageResult.Failed);
             }
 
@@ -73,9 +76,9 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.OnCancellationRequestedAsync();
 
-            if (_cmdProcess != null && !_cmdProcess.HasExited)
+            if (_batchProcess != null && !_batchProcess.HasExited)
             {
-                _cmdProcess.Kill(true);
+                _batchProcess.Kill(true);
             }
             
             return Task.CompletedTask;

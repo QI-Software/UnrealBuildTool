@@ -53,6 +53,11 @@ namespace UnrealBuildTool.Services
             return _buildConfigurations;
         }
 
+        public AutomatedBuild GetCurrentBuild()
+        {
+            return _currentBuild;
+        }
+
         /// <summary>
         /// Loads all of the build stages using reflection.
         /// </summary>

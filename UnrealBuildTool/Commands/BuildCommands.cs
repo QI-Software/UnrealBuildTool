@@ -30,6 +30,12 @@ namespace UnrealBuildTool.Commands
                 await ctx.RespondAsync(_embed.Message("There is no build in progress.", DiscordColor.Green));
                 return;
             }
+
+            var build = _buildService.GetCurrentBuild();
+            var seconds = (DateTimeOffset.Now - build.GetStartTime()).TotalSeconds;
+
+            await ctx.RespondAsync(_embed.Message(
+                $"Currently running {build.GetConfiguration().Name}. Time elapsed: {seconds}s", DiscordColor.Green));
         }
 
         [Command("listconfigs")]

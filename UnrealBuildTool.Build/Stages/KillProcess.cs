@@ -1,0 +1,54 @@
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
+
+namespace UnrealBuildTool.Build.Stages
+{
+    public class KillProcess : BuildStage
+    {
+        public override string GetName() => "KillProcess";
+
+        public override string GetDescription()
+        {
+            TryGetConfigValue("ProcessName", out string name);
+            return $"Kill process '{name}'";
+        }
+
+        public override bool IsStageConfigurationValid(out string ErrorMessage)
+        {
+            if (!base.IsStageConfigurationValid(out ErrorMessage))
+            {
+                return false;
+            }
+
+            TryGetConfigValue("ProcessName", out string name);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                ErrorMessage = "Cannot kill process with null or empty name.";
+                return false;
+            }
+
+            return true;
+        }
+
+        public override void GenerateDefaultStageConfiguration()
+        {
+            base.GenerateDefaultStageConfiguration();
+            
+            AddDefaultConfigurationKey("ProcessName", typeof(string), "");
+            AddDefaultConfigurationKey("KillChildren", typeof(bool), true);
+        }
+
+        public override Task<StageResult> DoTaskAsync()
+        {
+            TryGetConfigValue("ProcessName", out string name);
+            TryGetConfigValue("KillChildren", out bool killChildren);
+
+            foreach (var process in Process.GetProcessesByName(name))
+            {
+                process?.Kill(killChildren);
+            }
+
+            return Task.FromResult(StageResult.Successful);
+        }
+    }
+}

@@ -23,13 +23,15 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("File", typeof(string), "YourFile.exe");
             AddDefaultConfigurationKey("Arguments", typeof(string), "");
             AddDefaultConfigurationKey("Description", typeof(string), "Run console command.");
+            AddDefaultConfigurationKey("UseShellExecute", typeof(bool), true);
         }
 
         public override Task<StageResult> DoTaskAsync()
         {
             TryGetConfigValue<string>("File", out var file);
             TryGetConfigValue<string>("Arguments", out var arguments);
-
+            TryGetConfigValue<bool>("UseShellExecute", out var shellExecute);
+            
             OnConsoleOut($"UBT: Running file with arguments: '{file} {arguments}'");
             if (!File.Exists(file))
             {
@@ -45,7 +47,7 @@ namespace UnrealBuildTool.Build.Stages
                     Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    UseShellExecute = false,
+                    UseShellExecute = shellExecute,
                 }
             };
             

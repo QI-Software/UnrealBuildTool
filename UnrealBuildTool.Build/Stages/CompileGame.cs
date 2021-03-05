@@ -76,7 +76,7 @@ namespace UnrealBuildTool.Build.Stages
                 $"-Manifest=\"{manifestPath}\""
             };*/
             
-            _ubtProcess = new Process
+            /*_ubtProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -105,7 +105,7 @@ namespace UnrealBuildTool.Build.Stages
             {
                 FailureReason = $"UnrealBuildTool.exe failed with exit code {_ubtProcess.ExitCode}";
                 return Task.FromResult(StageResult.Failed);
-            }
+            }*/
 
             var msbuildArguments = new[]
             {

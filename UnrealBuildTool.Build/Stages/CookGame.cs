@@ -13,7 +13,9 @@ namespace UnrealBuildTool.Build.Stages
         public override string GetDescription()
         {
             TryGetConfigValue<string>("GameTarget", out var gameTarget);
-            return $"Cooking game with target '{gameTarget}'";
+            TryGetConfigValue<string>("GameConfiguration", out var config);
+            TryGetConfigValue<string>("GamePlatform", out var platform);
+            return $"Cook '{gameTarget}' with configuration [{config} | {platform}]";
         }
 
         public override void GenerateDefaultStageConfiguration()

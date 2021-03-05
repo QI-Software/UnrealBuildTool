@@ -48,12 +48,6 @@ namespace UnrealBuildTool.Build.Stages
                 return Task.FromResult(StageResult.Failed);
             }
 
-            if (!Directory.Exists(destination))
-            {
-                FailureReason = $"Directory '{destination}' does not exist.";
-                return Task.FromResult(StageResult.Failed);
-            }
-
             OnConsoleOut($"UBT: Moving folder '{target}' to '{destination}'");
             Directory.Move(target, destination);
             return Task.FromResult(StageResult.Successful);

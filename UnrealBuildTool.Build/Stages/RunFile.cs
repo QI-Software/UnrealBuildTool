@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
@@ -45,19 +46,24 @@ namespace UnrealBuildTool.Build.Stages
                 {
                     FileName = file,
                     Arguments = arguments,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
+                    RedirectStandardOutput = shellExecute,
+                    RedirectStandardError = shellExecute,
                     UseShellExecute = shellExecute,
                 }
             };
-            
+
+            _fileProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data); 
             _fileProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
 
             try
             {
                 _fileProcess.Start();
-                _fileProcess.BeginOutputReadLine();
-                _fileProcess.BeginErrorReadLine();
+
+                if (shellExecute)
+                {
+                    _fileProcess.BeginOutputReadLine();
+                    _fileProcess.BeginErrorReadLine();
+                }
                 _fileProcess.WaitForExit();
             }
             catch (Exception e)

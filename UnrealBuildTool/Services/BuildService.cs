@@ -320,6 +320,7 @@ namespace UnrealBuildTool.Services
 
         private void OnConsoleOutput(string output)
         {
+            Console.WriteLine(output);
             _buildNotifier.AddOutputData(output);
         }
 

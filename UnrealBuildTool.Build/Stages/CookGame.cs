@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
@@ -22,7 +23,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("GamePlatform", typeof(string), "Win64");
             AddDefaultConfigurationKey("GameConfiguration", typeof(string), "Shipping");
             AddDefaultConfigurationKey("GameTarget", typeof(string), "TargetProject");
-
+            AddDefaultConfigurationKey("IsServer", typeof(bool), false);
         }
 
         public override Task<StageResult> DoTaskAsync()
@@ -30,7 +31,8 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue<string>("GameConfiguration", out var gameConfig);
             TryGetConfigValue<string>("GamePlatform", out var gamePlatform);
             TryGetConfigValue<string>("GameTarget", out var gameTarget);
-
+            TryGetConfigValue<bool>("IsServer", out var isServer);
+            
             var ue4cmd = $"{BuildConfig.EngineDirectory}/Engine/Binaries/Win64/UE4Editor-Cmd.exe";
             ue4cmd = ue4cmd.Replace(@"\", "/").Replace("//", "/");
 
@@ -61,13 +63,26 @@ namespace UnrealBuildTool.Build.Stages
                 $"-ue4exe=\"{ue4cmd}\"",
                 "-pak",
                 $"-targetplatform={gamePlatform}",
+                "-build",
                 "-CrashReporter",
                 "-utf8output",
                 $"-target={gameTarget}",
-                $"-serverconfig={gameConfig}",
-                $"-clientconfig={gameConfig}",
+                $"-{(isServer ? "serverconfig" : "clientconfig")}={gameConfig}",
                 "-compile",
             };
+
+            if (gameConfig == "Shipping" || gameConfig == "Test")
+            {
+                var args = arguments.ToList();
+                args.Add("-prereqs");
+                arguments = args.ToArray();
+            }
+            else
+            {
+                var args = arguments.ToList();
+                args.Add("-compressed");
+                arguments = args.ToArray();
+            }
 
             _uatProcess = new Process()
             {

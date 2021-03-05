@@ -45,7 +45,11 @@ namespace UnrealBuildTool.Build.Stages
 
             foreach (var process in Process.GetProcessesByName(name))
             {
-                process?.Kill(killChildren);
+                if (process != null)
+                {
+                    OnConsoleOut($"UBT: Killing process [{process.Id}] {process.ProcessName}");
+                    process.Kill(killChildren);
+                }
             }
 
             return Task.FromResult(StageResult.Successful);

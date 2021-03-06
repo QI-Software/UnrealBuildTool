@@ -47,25 +47,32 @@ namespace UnrealBuildTool.Services
                 {
                     emote = "✅";
                 }
-                else if (stage.StageResult == StageResult.Successful)
-                {
-                    emote = "✅";
-                }
-                else if (stage.StageResult == StageResult.SuccessfulWithWarnings)
-                {
-                    emote = "⚠";
-                }
-                else if (stage.StageResult == StageResult.Failed || build.IsCancelled())
-                {
-                    emote = "⛔";
-                }
-                else if (stage.StageResult == StageResult.Running && !stage.RunInBackground())
-                {
-                    emote = DiscordEmoji.FromGuildEmote(_client, _config.Discord.LoadingEmoteId.GetValueOrDefault()).ToString();
-                }
                 else
                 {
-                    emote = "💤";
+                    switch (stage.StageResult)
+                    {
+                        case StageResult.Scheduled:
+                            emote = "⏳";
+                            break;
+                        case StageResult.Successful:
+                            emote = "✅";
+                            break;
+                        case StageResult.SuccessfulWithWarnings:
+                            emote = "⚠";
+                            break;
+                        case StageResult.Failed:
+                            emote = "⛔";
+                            break;
+                        case StageResult.Running when !stage.RunInBackground():
+                            emote = DiscordEmoji.FromGuildEmote(_client, _config.Discord.LoadingEmoteId.GetValueOrDefault()).ToString();
+                            break;
+                        case StageResult.Running when stage.RunInBackground():
+                            emote = "💤";
+                            break;
+                        default:
+                            emote = "?";
+                            break;
+                    }
                 }
                 
                 sb.AppendLine($"{emote} {stage.GetDescription()}");

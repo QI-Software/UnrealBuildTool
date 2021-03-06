@@ -55,16 +55,23 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("FriendlyName", "");
             AddDefaultConfigurationKey("MaxTries", 2);
             AddDefaultConfigurationKey("IsCritical", false);
+            AddDefaultConfigurationKey("RunInBackground", true);
         }
 
         public override bool RunInBackground()
         {
-            return true;
+            TryGetConfigValue("RunInBackground", out bool runInBackground);
+            return runInBackground;
         }
 
         public override List<BuildStage> GetIncompatibleBackgroundStages(List<BuildStage> stages)
         {
-            return stages.Where(s => s.GetType() == typeof(UploadToSteam)).ToList();
+            if (RunInBackground())
+            {
+                return stages.Where(s => s.GetType() == typeof(UploadToSteam)).ToList();
+            }
+
+            return new List<BuildStage>();
         }
 
         public override Task<StageResult> DoTaskAsync()

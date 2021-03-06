@@ -97,7 +97,10 @@ namespace UnrealBuildTool.Build.Stages
                 $"+run_app_build \"{appVDFPath}\"",
                 $"+quit"
             };
-
+            
+            OnConsoleOut($"UBT: Running SteamCMD Upload with arguments '{string.Join(' ', arguments)}'");
+            OnConsoleOut($"UBT: Max tries: {maxTries}");
+            
             while (maxTries > 0)
             {
                 maxTries--;
@@ -113,7 +116,6 @@ namespace UnrealBuildTool.Build.Stages
                     }
                 };
 
-                OnConsoleOut($"UBT: Running SteamCMD Upload with arguments '{string.Join(' ', arguments)}'");
                 FailureReason = null;
                 _steamcmdProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
                 _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
@@ -136,6 +138,7 @@ namespace UnrealBuildTool.Build.Stages
                         if (pThread.WaitReason == ThreadWaitReason.UserRequest)
                         {
                             FailureReason = "SteamCMD was waiting for a user input and was killed for it.";
+                            OnConsoleError(FailureReason);
                             _steamcmdProcess.Kill(true);
                             return;
                         }

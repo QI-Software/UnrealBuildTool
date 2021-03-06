@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -14,6 +15,7 @@ namespace UnrealBuildTool.Build
         private readonly DiscordUser _instigator;
 
         private List<BuildStage> _stages = new List<BuildStage>();
+        
         private int _currentStage = 0;
         private DateTimeOffset _buildStartTime;
         private bool _isCompleted = false;
@@ -184,12 +186,52 @@ namespace UnrealBuildTool.Build
                 OnStagedChanged();
 
                 var stage = _stages[_currentStage];
-                stage.StageResult = StageResult.Running;
                 OnConsoleOutput($"UBT: Starting stage '{stage.GetName()}'");
 
                 stage.OnConsoleOut += OnConsoleOutput;
                 stage.OnConsoleError += OnConsoleError;
 
+                // Check if the new stage can run with current background stages.
+                var runningBackgroundStages = _stages
+                    .Where(s => s.RunInBackground())
+                    .Where(s => s.StageResult == StageResult.Running)
+                    .ToList();
+                
+                var forbiddenStages = stage.GetIncompatibleBackgroundStages(runningBackgroundStages);
+                
+                if (forbiddenStages.Any())
+                {
+                    OnConsoleOutput(
+                        $"UBT: Stage '{stage.GetName()}' cannot run with some background stages. Waiting for background stages to end.");
+                    var tasks = forbiddenStages
+                        .Select(s => s.BackgroundTask)
+                        .Where(t => t != null)
+                        .ToArray();
+
+                    Task.WaitAll(tasks);
+                }
+                
+                stage.StageResult = StageResult.Running;
+                
+                // Run it in the background if it wants to.
+                if (stage.RunInBackground())
+                {
+                    stage.BackgroundTask = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            stage.StageResult = await stage.DoTaskAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            stage.StageResult = StageResult.Failed;
+                            stage.FailureReason = "An exception has occured during background execution: " + e.Message;
+                        }
+                    });
+
+                    continue;
+                }
+                
                 try
                 {
                     stage.StageResult = await stage.DoTaskAsync();
@@ -230,7 +272,18 @@ namespace UnrealBuildTool.Build
                 OnCancelled();
                 return;
             }
+            
+            // Wait for all background tasks to finish.
+            var backgroundStages = _stages.Where(s => s.RunInBackground() && s.BackgroundTask != null).ToList();
+            Task.WaitAll(backgroundStages.Select(s => s.BackgroundTask).ToArray());
 
+            if (backgroundStages.Any(s => s.StageResult == StageResult.Failed))
+            {
+                _isFailed = true;
+                OnFailed(null);
+                return;
+            }
+            
             if (_currentStage == _stages.Count)
             {
                 _isCompleted = true;

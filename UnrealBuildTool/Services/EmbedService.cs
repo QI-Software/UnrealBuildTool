@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -34,8 +35,10 @@ namespace UnrealBuildTool.Services
             var user = build.GetInstigator();
 
             var sb = new StringBuilder();
+            var backgroundSb = new StringBuilder();
+            
             var stages = build.GetStages();
-
+            
             foreach (var stage in stages)
             {
                 var emote = "⏳";
@@ -56,11 +59,20 @@ namespace UnrealBuildTool.Services
                 {
                     emote = "⛔";
                 }
-                else if (stage.StageResult == StageResult.Running)
+                else if (stage.StageResult == StageResult.Running && !stage.RunInBackground())
                 {
                     emote = DiscordEmoji.FromGuildEmote(_client, _config.Discord.LoadingEmoteId.GetValueOrDefault()).ToString();
                 }
+                else
+                {
+                    emote = "💤";
+                }
+                
                 sb.AppendLine($"{emote} {stage.GetDescription()}");
+                if (stage.RunInBackground() && stage.StageResult != StageResult.Scheduled)
+                {
+                    backgroundSb.AppendLine($"{emote} {stage.GetDescription()}");
+                }
             }
 
             var embed = new DiscordEmbedBuilder()
@@ -96,8 +108,12 @@ namespace UnrealBuildTool.Services
                 embed.WithDescription("Starting build...")
                     .WithColor(DiscordColor.Blurple);
             }
-            
-            embed.AddField("**__Stages__**", sb.ToString()).Build();
+
+            embed.AddField("**__Stages__**", sb.ToString());
+            if (backgroundSb.Length != 0)
+            {
+                embed.AddField("**__Background Stages__**", backgroundSb.ToString());
+            }
 
             if (build.IsFailed() && !build.IsCancelled())
             {
@@ -109,7 +125,7 @@ namespace UnrealBuildTool.Services
                 }
             }
             
-            return embed;
+            return embed.Build();
         }
     }
 }

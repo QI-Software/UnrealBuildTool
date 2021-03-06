@@ -58,6 +58,11 @@ namespace UnrealBuildTool.Build
         /// Whether or now cancellation was called while this task was running.
         /// </summary>
         public bool IsCancelled { get; private set; }
+        
+        /// <summary>
+        /// If this task is currently running in the background, the task it runs in.
+        /// </summary>
+        public Task BackgroundTask { get; set; }
 
         /// <summary>
         /// Is the set stage configuration valid? 
@@ -142,6 +147,22 @@ namespace UnrealBuildTool.Build
             IsCancelled = true;
             OnConsoleOut("UBT: Received cancellation request.");
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// If true, this build stage will run on a background task, allowing other tasks to start at the same time.
+        /// </summary>
+        public virtual bool RunInBackground()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the background stages this stage cannot run with.
+        /// </summary>
+        public virtual List<BuildStage> GetIncompatibleBackgroundStages(List<BuildStage> stages)
+        {
+            return new List<BuildStage>();
         }
     }
 }

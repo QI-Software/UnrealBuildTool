@@ -89,6 +89,27 @@ namespace UnrealBuildTool.Build.Stages
                 OnConsoleOut("UBT: Destination file already exists, aborting (ShouldOverwrite is false)");
                 return Task.FromResult(StageResult.SuccessfulWithWarnings);
             }
+            
+            if (destination.Contains("/"))
+            {
+                var splits = destination.Split('/');
+                var parentDir = splits.Take(splits.Length - 1).Aggregate((curr, next) => $"{curr}/{next}");
+                if (!Directory.Exists(parentDir))
+                {
+                    OnConsoleOut($"UBT: Parent destination directory '{parentDir}' does not exist, creating.");
+
+                    try
+                    {
+                        Directory.CreateDirectory(parentDir);
+                    }
+                    catch (Exception e)
+                    {
+                        FailureReason = $"Failed to create parent directory '{parentDir}': {e.Message}";
+                        OnConsoleError(FailureReason);
+                        return Task.FromResult(critical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
+                    }
+                }
+            }
 
             try
             {

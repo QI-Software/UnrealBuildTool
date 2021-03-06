@@ -22,7 +22,7 @@ namespace UnrealBuildTool.Commands
         public async Task EvaluateCode(CommandContext ctx, [RemainingText] string code)
         {
             var watch = new Stopwatch();
-            code = Formatter.Sanitize(code);
+            code = code.Replace("```cs", "").Replace("```", "");
             watch.Start();
 
             var formattedMessage = Formatter.BlockCode("Evaluating...", "diff");

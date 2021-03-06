@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -128,33 +129,11 @@ namespace UnrealBuildTool.Build.Stages
                 };
 
                 FailureReason = null;
-                _steamcmdProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                _ = ConsumeReader(_steamcmdProcess.StandardOutput);
                 _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
                 _steamcmdProcess.Start();
                 _steamcmdProcess.BeginOutputReadLine();
                 _steamcmdProcess.BeginErrorReadLine();
-
-                // Verify that SteamCMD doesn't wait for input. If it does, murder it.
-                /*_hangCheck = Task.Run(async () =>
-                {
-                    await Task.Delay(1000);
-                    
-                    if (_steamcmdProcess == null || _steamcmdProcess.HasExited)
-                    {
-                        return;
-                    }
-                    
-                    foreach (ProcessThread pThread in _steamcmdProcess.Threads)
-                    {
-                        if (pThread.WaitReason == ThreadWaitReason.UserRequest)
-                        {
-                            FailureReason = "SteamCMD was waiting for a user input and was killed for it.";
-                            OnConsoleError(FailureReason);
-                            _steamcmdProcess.Kill(true);
-                            return;
-                        }
-                    }
-                });*/
 
                 _steamcmdProcess.WaitForExit();
 
@@ -211,6 +190,29 @@ namespace UnrealBuildTool.Build.Stages
             
             _steamcmdProcess.Kill(true);
             return Task.CompletedTask;
+        }
+
+        private string _currentOutput = "";
+        async Task ConsumeReader(TextReader reader)
+        {
+            char[] buffer = new char[1];
+
+            while ((await reader.ReadAsync(buffer, 0, 1)) > 0)
+            {
+                if (buffer[0].Equals('\n') )
+                {
+                    OnConsoleOut(_currentOutput);
+                    _currentOutput = "";
+                    continue;
+                }
+                
+                _currentOutput += buffer[0];
+                if (_currentOutput.Length >= 128)
+                {
+                    OnConsoleOut(_currentOutput);
+                    _currentOutput = "";
+                }
+            }
         }
     }
 }

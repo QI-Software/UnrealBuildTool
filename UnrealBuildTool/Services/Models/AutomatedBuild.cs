@@ -22,6 +22,7 @@ namespace UnrealBuildTool.Build
         private bool _isFailed = false;
         private bool _isCancelled = false;
         private bool _isCancellationRequested = false;
+        private bool _backgroundStageFailed = false;
 
         private Task _buildTask;
         private CancellationTokenSource _cancellationToken;
@@ -90,12 +91,12 @@ namespace UnrealBuildTool.Build
 
         public bool IsFailed()
         {
-            return _isFailed;
+            return _isFailed || _backgroundStageFailed;
         }
 
         public bool IsCancelled()
         {
-            return _isCancelled;
+            return _isCancelled && !_backgroundStageFailed;
         }
 
         public bool IsCancellationRequested()
@@ -227,6 +228,13 @@ namespace UnrealBuildTool.Build
                             stage.StageResult = StageResult.Failed;
                             stage.FailureReason = "An exception has occured during background execution: " + e.Message;
                         }
+
+                        // Oh no, it failed, so we'll kill everything.
+                        if (stage.StageResult == StageResult.Failed)
+                        {
+                            _backgroundStageFailed = true;
+                            await _buildService.CancelBuildAsync();
+                        }
                     });
 
                     continue;
@@ -245,9 +253,9 @@ namespace UnrealBuildTool.Build
                 stage.OnConsoleOut -= OnConsoleOutput;
                 stage.OnConsoleError -= OnConsoleError;
 
-                if (stage.StageResult == StageResult.Running)
+                if (stage.StageResult == StageResult.Running || stage.StageResult == StageResult.Scheduled)
                 {
-                    stage.FailureReason = "Stage returned 'Running' stage result, and was failed for it.";
+                    stage.FailureReason = "Stage returned 'Running' or 'Scheduled' stage result, and was failed for it.";
                     stage.StageResult = StageResult.Failed;
                 }
                 
@@ -262,7 +270,7 @@ namespace UnrealBuildTool.Build
                     OnFailed(stage);
                     return;
                 }
-
+                
                 _currentStage++;
             }
 
@@ -270,12 +278,16 @@ namespace UnrealBuildTool.Build
             {
                 _isCancelled = true;
                 OnCancelled();
-                return;
             }
             
             // Wait for all background tasks to finish.
             var backgroundStages = _stages.Where(s => s.RunInBackground() && s.BackgroundTask != null).ToList();
             Task.WaitAll(backgroundStages.Select(s => s.BackgroundTask).ToArray());
+
+            if (_isCancelled)
+            {
+                return;
+            }
 
             if (backgroundStages.Any(s => s.StageResult == StageResult.Failed))
             {

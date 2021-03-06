@@ -1,0 +1,197 @@
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace UnrealBuildTool.Build.Stages
+{
+    public class UploadToSteam : BuildStage
+    {
+        private Process _steamcmdProcess;
+        private Task _hangCheck;
+        
+        public override string GetName() => nameof(UploadToSteam);
+
+        public override string GetDescription()
+        {
+            TryGetConfigValue("FriendlyName", out string friendlyName);
+            return $"Upload to Steam using VDF '{friendlyName}'";
+        }
+
+        public override bool IsStageConfigurationValid(out string ErrorMessage)
+        {
+            if (!base.IsStageConfigurationValid(out ErrorMessage))
+            {
+                return false;
+            }
+
+            TryGetConfigValue("SteamCMDPath", out string path);
+            TryGetConfigValue("Username", out string user);
+            TryGetConfigValue("AppVDFPath", out string appVDFPath);
+
+            if (!File.Exists(path))
+            {
+                ErrorMessage = $"Could not find SteamCMD at path '{path}'";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(user))
+            {
+                ErrorMessage = $"Cannot upload to Steam with null or empty username.";
+                return false;
+            }
+
+            if (!File.Exists(appVDFPath))
+            {
+                ErrorMessage = $"Cannot find App VDF at '{appVDFPath}'.";
+                return false;
+            }
+            
+            return true;
+        }
+
+        public override void GenerateDefaultStageConfiguration()
+        {
+            base.GenerateDefaultStageConfiguration();
+            
+            AddDefaultConfigurationKey("SteamCMDPath", "/Path/To/SteamCMD.exe");
+            AddDefaultConfigurationKey("Username", "");
+            AddDefaultConfigurationKey("Password", "");
+            AddDefaultConfigurationKey("AppVDFPath", "");
+            AddDefaultConfigurationKey("FriendlyName", "");
+            AddDefaultConfigurationKey("MaxTries", 2);
+            AddDefaultConfigurationKey("IsCritical", false);
+        }
+
+        public override bool RunInBackground()
+        {
+            return true;
+        }
+
+        public override List<BuildStage> GetIncompatibleBackgroundStages(List<BuildStage> stages)
+        {
+            return stages.Where(s => s.GetType() == typeof(UploadToSteam)).ToList();
+        }
+
+        public override Task<StageResult> DoTaskAsync()
+        {
+            TryGetConfigValue("SteamCMDPath", out string steamcmdPath);
+            TryGetConfigValue("Username", out string username);
+            TryGetConfigValue("Password", out string password);
+            TryGetConfigValue("AppVDFPath", out string appVDFPath);
+            TryGetConfigValue("MaxTries", out int maxTries);
+            TryGetConfigValue("IsCritical", out bool isCritical);
+
+
+            var arguments = new[]
+            {
+                string.IsNullOrWhiteSpace(password) 
+                    ? $"+login {username}"
+                    : $"+login {username} {password}",
+                $"+run_app_build \"{appVDFPath}\"",
+                $"+quit"
+            };
+
+            while (maxTries > 0)
+            {
+                maxTries--;
+                
+                 _steamcmdProcess = new Process
+                {
+                    StartInfo =
+                    {
+                        FileName = steamcmdPath,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                    }
+                };
+
+                OnConsoleOut($"UBT: Running SteamCMD Upload with arguments '{string.Join(' ', arguments)}'");
+                FailureReason = null;
+                _steamcmdProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _steamcmdProcess.Start();
+                _steamcmdProcess.BeginOutputReadLine();
+                _steamcmdProcess.BeginErrorReadLine();
+
+                // Verify that SteamCMD doesn't wait for input. If it does, murder it.
+                _hangCheck = Task.Run(async () =>
+                {
+                    await Task.Delay(1000);
+                    
+                    if (_steamcmdProcess == null || _steamcmdProcess.HasExited)
+                    {
+                        return;
+                    }
+                    
+                    foreach (ProcessThread pThread in _steamcmdProcess.Threads)
+                    {
+                        if (pThread.WaitReason == ThreadWaitReason.UserRequest)
+                        {
+                            FailureReason = "SteamCMD was waiting for a user input and was killed for it.";
+                            _steamcmdProcess.Kill(true);
+                            return;
+                        }
+                    }
+                });
+
+                _steamcmdProcess.WaitForExit();
+
+                if (IsCancelled)
+                {
+                    return Task.FromResult(StageResult.Failed);
+                }
+                
+                // Once exited, check if the FailureReason isn't nuLL.
+                if (FailureReason != null)
+                {
+                    continue;
+                }
+
+                switch (_steamcmdProcess.ExitCode)
+                {
+                    case 0: return Task.FromResult(StageResult.Successful);
+                    case 3:
+                        FailureReason = "Failed to load steamclient.dll";
+                        break;
+                    case 4:
+                        FailureReason = "Invalid input parameter(s) specified.";
+                        break;
+                    case 5:
+                        FailureReason = "Failed to login to Steam.";
+                        break;
+                    case 6:
+                        FailureReason = "Uploading app content failed.";
+                        break;
+                    case 7:
+                        FailureReason = "Command runscript failed.";
+                        break;
+                    case 8:
+                        FailureReason = "Downloading app content failed.";
+                        break;
+                    case 9:
+                        FailureReason = "Uploading workshop content failed.";
+                        break;
+                    case 10:
+                        FailureReason = "Downloading workshop content failed.";
+                        break;
+                    default:
+                        FailureReason = $"An unknown exit code was given ({_steamcmdProcess.ExitCode})";
+                        break;
+                }
+            }
+
+            return Task.FromResult(isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
+        }
+
+        public override Task OnCancellationRequestedAsync()
+        {
+            base.OnCancellationRequestedAsync();
+            
+            _steamcmdProcess.Kill(true);
+            return Task.CompletedTask;
+        }
+    }
+}

@@ -323,16 +323,10 @@ namespace UnrealBuildTool.Commands
             }
 
             var config = configs[selection];
-            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
-
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            await writer.WriteAsync(json);
-            await writer.FlushAsync();
-
             var builder = new DiscordMessageBuilder()
-                .WithFile(config.SourceFile, stream);
-            
+                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                .WithFile($"config/buildConfigurations/{config.SourceFile}");
+
             await ctx.Channel.SendMessageAsync(builder);
         }
         

@@ -375,13 +375,21 @@ namespace UnrealBuildTool.Commands
         [Command("configtemplate")]
         public async Task GetBuildConfigTemplate(CommandContext ctx)
         {
-            
+            var builder = new DiscordMessageBuilder()
+                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                .WithFile($"config/buildTemplate.json");
+
+            await ctx.RespondAsync(builder);
         }
 
         [Command("stagetemplate")]
         public async Task GetStageTemplates(CommandContext ctx)
         {
-            
+            var builder = new DiscordMessageBuilder()
+                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                .WithFile($"config/stageTemplates.json");
+
+            await ctx.RespondAsync(builder);
         }
     }
 }

@@ -98,7 +98,16 @@ namespace UnrealBuildTool.Build.Stages
                 $"+quit"
             };
             
-            OnConsoleOut($"UBT: Running SteamCMD Upload with arguments '{string.Join(' ', arguments)}'");
+            var redactedArgument = new[]
+            {
+                string.IsNullOrWhiteSpace(password) 
+                    ? $"+login {username}"
+                    : $"+login {username} [PASSWORD REDACTED]",
+                $"+run_app_build \"{appVDFPath}\"",
+                $"+quit"
+            };
+            
+            OnConsoleOut($"UBT: Running SteamCMD Upload with arguments '{string.Join(' ', redactedArgument)}'");
             OnConsoleOut($"UBT: Max tries: {maxTries}");
             
             while (maxTries > 0)
@@ -124,7 +133,7 @@ namespace UnrealBuildTool.Build.Stages
                 _steamcmdProcess.BeginErrorReadLine();
 
                 // Verify that SteamCMD doesn't wait for input. If it does, murder it.
-                _hangCheck = Task.Run(async () =>
+                /*_hangCheck = Task.Run(async () =>
                 {
                     await Task.Delay(1000);
                     
@@ -143,7 +152,7 @@ namespace UnrealBuildTool.Build.Stages
                             return;
                         }
                     }
-                });
+                });*/
 
                 _steamcmdProcess.WaitForExit();
 

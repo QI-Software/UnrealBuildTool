@@ -122,6 +122,7 @@ namespace UnrealBuildTool.Build.Stages
                         Arguments = string.Join(' ', arguments),
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
+                        RedirectStandardInput = true,
                         UseShellExecute = false,
                     }
                 };
@@ -134,7 +135,7 @@ namespace UnrealBuildTool.Build.Stages
                 _steamcmdProcess.BeginErrorReadLine();
 
                 // Verify that SteamCMD doesn't wait for input. If it does, murder it.
-                _hangCheck = Task.Run(async () =>
+                /*_hangCheck = Task.Run(async () =>
                 {
                     await Task.Delay(1000);
                     
@@ -153,7 +154,7 @@ namespace UnrealBuildTool.Build.Stages
                             return;
                         }
                     }
-                });
+                });*/
 
                 _steamcmdProcess.WaitForExit();
 

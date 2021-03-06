@@ -119,7 +119,7 @@ namespace UnrealBuildTool.Build.Stages
                     StartInfo =
                     {
                         FileName = steamcmdPath,
-                        Arguments = string.Join(' ', arguments);
+                        Arguments = string.Join(' ', arguments),
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false,

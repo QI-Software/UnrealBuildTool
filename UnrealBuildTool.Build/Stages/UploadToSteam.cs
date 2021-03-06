@@ -28,7 +28,6 @@ namespace UnrealBuildTool.Build.Stages
 
             TryGetConfigValue("SteamCMDPath", out string path);
             TryGetConfigValue("Username", out string user);
-            TryGetConfigValue("AppVDFPath", out string appVDFPath);
 
             if (!File.Exists(path))
             {
@@ -39,12 +38,6 @@ namespace UnrealBuildTool.Build.Stages
             if (string.IsNullOrEmpty(user))
             {
                 ErrorMessage = $"Cannot upload to Steam with null or empty username.";
-                return false;
-            }
-
-            if (!File.Exists(appVDFPath))
-            {
-                ErrorMessage = $"Cannot find App VDF at '{appVDFPath}'.";
                 return false;
             }
             
@@ -82,7 +75,12 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue("AppVDFPath", out string appVDFPath);
             TryGetConfigValue("MaxTries", out int maxTries);
             TryGetConfigValue("IsCritical", out bool isCritical);
-
+            
+            if (!File.Exists(appVDFPath))
+            {
+                FailureReason = $"Cannot find App VDF at '{appVDFPath}'.";
+                return Task.FromResult(isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
+            }
 
             var arguments = new[]
             {

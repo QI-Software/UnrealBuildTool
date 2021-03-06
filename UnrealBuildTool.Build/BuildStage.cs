@@ -80,8 +80,12 @@ namespace UnrealBuildTool.Build
 
                 if (!defaultKey.Type.IsInstanceOfType(StageConfiguration[defaultKey.Key]))
                 {
-                    ErrorMessage = $"Stage '{GetName()}': expected key '{defaultKey.Key}' to be of type '{defaultKey.Type}'.";
-                    return false;
+                    if (!(IsNumericType(defaultKey.Type) &&
+                          IsNumericType(StageConfiguration[defaultKey.Key].GetType())))
+                    {
+                        ErrorMessage = $"Stage '{GetName()}': expected key '{defaultKey.Key}' to be of type '{defaultKey.Type}'.";
+                        return false;
+                    }
                 }
             }
 
@@ -163,6 +167,27 @@ namespace UnrealBuildTool.Build
         public virtual List<BuildStage> GetIncompatibleBackgroundStages(List<BuildStage> stages)
         {
             return new List<BuildStage>();
+        }
+        
+        private bool IsNumericType(Type type)
+        {   
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.Decimal:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

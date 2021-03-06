@@ -120,10 +120,8 @@ namespace UnrealBuildTool.Build.Stages
                     StartInfo =
                     {
                         FileName = steamcmdPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        RedirectStandardInput = true,
-                        UseShellExecute = false,
+                        UseShellExecute = true,
+                        CreateNoWindow = false,
                     }
                 };
 
@@ -169,11 +167,8 @@ namespace UnrealBuildTool.Build.Stages
                 while (!_steamcmdProcess.HasExited)
                 {
                     await Task.Delay(1000);
-                    if (_hanging)
-                    {
-                        OnConsoleOut("UBT: Hang detected, giving SteamCMD a little pat to wake up.");
-                        _steamcmdProcess.StandardInput.WriteLine("");
-                    }
+                    
+                    OnConsoleOut("UBT: SteamCMD is still active.");
                 }
 
                 if (IsCancelled)

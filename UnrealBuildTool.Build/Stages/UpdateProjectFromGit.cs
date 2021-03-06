@@ -26,9 +26,9 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<bool>("RunGitClean", out var bRunGitClean);
-            TryGetConfigValue<bool>("RunGitResetHard", out var bRunGitReset);
-            TryGetConfigValue<bool>("RunGitLFSPrune", out var bRunGitLFSPrune);
+            TryGetConfigValue("RunGitClean", out bool bRunGitClean);
+            TryGetConfigValue("RunGitResetHard", out bool bRunGitReset);
+            TryGetConfigValue("RunGitLFSPrune", out bool bRunGitLFSPrune);
 
             var cleanArguments = new[]
             {

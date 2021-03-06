@@ -330,7 +330,7 @@ namespace UnrealBuildTool.Services
             _buildNotifier.AddOutputData(output);
         }
 
-        private async void OnStagedChanged()
+        private void OnStagedChanged()
         {
         }
     }

@@ -10,8 +10,8 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            TryGetConfigValue<string>("Target", out var target);
-            TryGetConfigValue<string>("Destination", out var destination);
+            TryGetConfigValue("Target", out string target);
+            TryGetConfigValue("Destination", out string destination);
 
             target = target.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
             destination = destination.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
@@ -34,8 +34,8 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("Target", out var target);
-            TryGetConfigValue<string>("Destination", out var destination);
+            TryGetConfigValue("Target", out string target);
+            TryGetConfigValue("Destination", out string destination);
 
             if (!Directory.Exists(target))
             {

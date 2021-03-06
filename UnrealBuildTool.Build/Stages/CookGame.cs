@@ -12,10 +12,10 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            TryGetConfigValue<string>("GameTarget", out var gameTarget);
-            TryGetConfigValue<string>("GameConfiguration", out var config);
-            TryGetConfigValue<string>("GamePlatform", out var platform);
-            return $"Cook '{gameTarget}' with configuration [{config} | {platform}]";
+            TryGetConfigValue("GameConfiguration", out string gameConfig);
+            TryGetConfigValue("GamePlatform", out string gamePlatform);
+            TryGetConfigValue("GameTarget", out string gameTarget);
+            return $"Cook '{gameTarget}' with configuration [{gameConfig} | {gamePlatform}]";
         }
 
         public override void GenerateDefaultStageConfiguration()
@@ -30,10 +30,10 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("GameConfiguration", out var gameConfig);
-            TryGetConfigValue<string>("GamePlatform", out var gamePlatform);
-            TryGetConfigValue<string>("GameTarget", out var gameTarget);
-            TryGetConfigValue<bool>("IsServer", out var isServer);
+            TryGetConfigValue("GameConfiguration", out string gameConfig);
+            TryGetConfigValue("GamePlatform", out string gamePlatform);
+            TryGetConfigValue("GameTarget", out string gameTarget);
+            TryGetConfigValue("IsServer", out bool isServer);
             
             var ue4cmd = $"{BuildConfig.EngineDirectory}/Engine/Binaries/Win64/UE4Editor-Cmd.exe";
             ue4cmd = ue4cmd.Replace(@"\", "/").Replace("//", "/");
@@ -138,7 +138,7 @@ namespace UnrealBuildTool.Build.Stages
                 return false;
             }
             
-            TryGetConfigValue<string>("GameConfiguration", out var gameConfig);
+            TryGetConfigValue("GameConfiguration", out string gameConfig);
             
             if (!BuildConfiguration.IsValidConfiguration(gameConfig))
             {

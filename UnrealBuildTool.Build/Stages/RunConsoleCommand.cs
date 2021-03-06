@@ -11,7 +11,7 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            TryGetConfigValue<string>("Description", out var desc);
+            TryGetConfigValue("Description", out string desc);
             return desc;
         }
 
@@ -25,7 +25,7 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("Command", out var cmd);
+            TryGetConfigValue("Command", out string cmd);
             OnConsoleOut("UBT: Running command: " + cmd);
             
             _cmdProcess = new Process

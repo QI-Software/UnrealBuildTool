@@ -13,10 +13,10 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            TryGetConfigValue<string>("GameConfiguration", out var config);
-            TryGetConfigValue<string>("GamePlatform", out var platform);
-            TryGetConfigValue<string>("GameTarget", out var target);
-            TryGetConfigValue<bool>("CompileGame", out var compileGame);
+            TryGetConfigValue("GameConfiguration", out string config);
+            TryGetConfigValue("GamePlatform", out string platform);
+            TryGetConfigValue("GameTarget", out string target);
+            TryGetConfigValue("CompileGame", out bool compileGame);
 
             if (compileGame)
             {
@@ -40,12 +40,12 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("GameConfiguration", out var config);
-            TryGetConfigValue<string>("GamePlatform", out var platform);
-            TryGetConfigValue<string>("GameTarget", out var target);
-            TryGetConfigValue<string>("MSBuildPath", out var msbuildPath);
-            TryGetConfigValue<bool>("CompileEditor", out var compileEditor);
-            TryGetConfigValue<bool>("CompileGame", out var compileGame);
+            TryGetConfigValue("GameConfiguration", out string config);
+            TryGetConfigValue("GamePlatform", out string platform);
+            TryGetConfigValue("GameTarget", out string target);
+            TryGetConfigValue("MSBuildPath", out string msbuildPath);
+            TryGetConfigValue("CompileEditor", out bool compileEditor);
+            TryGetConfigValue("CompileGame", out bool compileGame);
 
             if (compileEditor)
             {
@@ -188,9 +188,9 @@ namespace UnrealBuildTool.Build.Stages
                 return false;
             }
             
-            TryGetConfigValue<string>("MSBuildPath", out var msbuildPath);
-            TryGetConfigValue<bool>("CompileEditor", out var compileEditor);
-            TryGetConfigValue<bool>("CompileGame", out var compileGame);
+            TryGetConfigValue("MSBuildPath", out string msbuildPath);
+            TryGetConfigValue("CompileEditor", out bool compileEditor);
+            TryGetConfigValue("CompileGame", out bool compileGame);
 
             if (!compileEditor && !compileGame)
             {

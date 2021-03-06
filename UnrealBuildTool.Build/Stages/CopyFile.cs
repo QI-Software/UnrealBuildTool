@@ -11,8 +11,8 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            TryGetConfigValue<string>("TargetFile", out var target);
-            TryGetConfigValue<string>("DestinationFile", out var destination);
+            TryGetConfigValue("TargetFile", out string target);
+            TryGetConfigValue("DestinationFile", out string destination);
 
             target = target.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
             destination = destination.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
@@ -43,10 +43,10 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("TargetFile", out var target);
-            TryGetConfigValue<string>("DestinationFile", out var destination);
-            TryGetConfigValue<bool>("ShouldOverwrite", out var shouldOverwrite);
-            TryGetConfigValue<bool>("IsCritical", out var critical);
+            TryGetConfigValue("TargetFile", out string target);
+            TryGetConfigValue("DestinationFile", out string destination);
+            TryGetConfigValue("ShouldOverwrite", out bool shouldOverwrite);
+            TryGetConfigValue("IsCritical", out bool critical);
 
             target = target.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
             destination = destination.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');
@@ -65,7 +65,7 @@ namespace UnrealBuildTool.Build.Stages
                     catch (Exception)
                     {
                         OnConsoleError($"UBT: Failed to create destination directory '{directory}'");
-                        TryGetConfigValue<bool>("IsCritical", out var crit);
+                        TryGetConfigValue("IsCritical", out bool crit);
                         if (crit)
                         {
                             FailureReason = $"UBT: Failed to create destination directory '{directory}'";
@@ -111,8 +111,8 @@ namespace UnrealBuildTool.Build.Stages
                 return false;
             }
 
-            TryGetConfigValue<string>("TargetFile", out var target);
-            TryGetConfigValue<string>("DestinationFile", out var dest);
+            TryGetConfigValue("TargetFile", out string target);
+            TryGetConfigValue("DestinationFile", out string dest);
 
             if (string.IsNullOrWhiteSpace(target))
             {

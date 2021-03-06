@@ -13,7 +13,7 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription()
         {
-            TryGetConfigValue<string>("Description", out var desc);
+            TryGetConfigValue("Description", out string desc);
             return desc;
         }
 
@@ -29,9 +29,9 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync()
         {
-            TryGetConfigValue<string>("File", out var file);
-            TryGetConfigValue<string>("Arguments", out var arguments);
-            TryGetConfigValue<bool>("UseShellExecute", out var shellExecute);
+            TryGetConfigValue("File", out string file);
+            TryGetConfigValue("Arguments", out string arguments);
+            TryGetConfigValue("UseShellExecute", out bool shellExecute);
             
             OnConsoleOut($"UBT: Running file with arguments: '{file} {arguments}'");
             if (!File.Exists(file))

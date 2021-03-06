@@ -123,13 +123,73 @@ namespace UnrealBuildTool.Build
             StageConfiguration = newConfig ?? throw new ArgumentNullException(nameof(newConfig));
         }
 
-        public bool TryGetConfigValue<T>(string key, out T value)
+        public bool TryGetConfigValue<T>(string key, out T value) where T : class, new()
         {
             if (StageConfiguration.ContainsKey(key))
             {
                 if (StageConfiguration[key] is T obj)
                 {
                     value = obj;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
+        public bool TryGetConfigValue(string key, out bool value)
+        {
+            if (StageConfiguration.ContainsKey(key))
+            {
+                if (StageConfiguration[key] is bool b)
+                {
+                    value = b;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+        
+        public bool TryGetConfigValue(string key, out string value)
+        {
+            if (StageConfiguration.ContainsKey(key))
+            {
+                if (StageConfiguration[key] is string str)
+                {
+                    value = str;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+        
+        public bool TryGetConfigValue(string key, out int value)
+        {
+            if (StageConfiguration.ContainsKey(key))
+            {
+                if (StageConfiguration[key] is int i)
+                {
+                    value = i;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+        
+        public bool TryGetConfigValue(string key, out float value)
+        {
+            if (StageConfiguration.ContainsKey(key))
+            {
+                if (StageConfiguration[key] is float f)
+                {
+                    value = f;
                     return true;
                 }
             }

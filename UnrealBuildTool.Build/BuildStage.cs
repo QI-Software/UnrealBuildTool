@@ -123,21 +123,6 @@ namespace UnrealBuildTool.Build
             StageConfiguration = newConfig ?? throw new ArgumentNullException(nameof(newConfig));
         }
 
-        public bool TryGetConfigValue<T>(string key, out T value) where T : class, new()
-        {
-            if (StageConfiguration.ContainsKey(key))
-            {
-                if (StageConfiguration[key] is T obj)
-                {
-                    value = obj;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
-
         public bool TryGetConfigValue(string key, out bool value)
         {
             if (StageConfiguration.ContainsKey(key))
@@ -172,24 +157,8 @@ namespace UnrealBuildTool.Build
         {
             if (StageConfiguration.ContainsKey(key))
             {
-                if (StageConfiguration[key] is int i)
+                if (int.TryParse(StageConfiguration[key].ToString(), out value))
                 {
-                    value = i;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
-        
-        public bool TryGetConfigValue(string key, out float value)
-        {
-            if (StageConfiguration.ContainsKey(key))
-            {
-                if (StageConfiguration[key] is float f)
-                {
-                    value = f;
                     return true;
                 }
             }

@@ -129,9 +129,7 @@ namespace UnrealBuildTool.Build.Stages
                 _steamcmdProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
                 _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
                 _steamcmdProcess.Start();
-                _steamcmdProcess.BeginOutputReadLine();
-                _steamcmdProcess.BeginErrorReadLine();
-
+                
                 // Verify that SteamCMD doesn't wait for input. If it does, murder it.
                 _hangCheck = Task.Run(async () =>
                 {

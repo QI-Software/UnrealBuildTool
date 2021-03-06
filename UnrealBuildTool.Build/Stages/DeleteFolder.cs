@@ -62,7 +62,7 @@ namespace UnrealBuildTool.Build.Stages
             }
             else
             {
-                OnConsoleOut("UBT: No directory to delete at '{path}', ignoring.");
+                OnConsoleOut($"UBT: No directory to delete at '{path}', ignoring.");
             }
 
             return Task.FromResult(StageResult.Successful);

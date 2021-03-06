@@ -1,11 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
+using Newtonsoft.Json;
+using UnrealBuildTool.Build;
 using UnrealBuildTool.Preconditions;
 using UnrealBuildTool.Services;
 
@@ -16,11 +20,13 @@ namespace UnrealBuildTool.Commands
     {
         private readonly BuildService _buildService;
         private readonly EmbedService _embed;
+        private readonly HttpClient _httpClient;
 
-        public BuildCommands(BuildService buildService, EmbedService embed)
+        public BuildCommands(BuildService buildService, EmbedService embed, HttpClient httpClient)
         {
             _buildService = buildService;
             _embed = embed;
+            _httpClient = httpClient;
         }
 
         [Command("status")]
@@ -263,6 +269,125 @@ namespace UnrealBuildTool.Commands
             await _buildService.CancelBuildAsync();
             await ctx.RespondAsync(_embed.Message("Cancellation request successful, please standby.",
                 DiscordColor.Green));
+        }
+        
+        [Command("downloadconfig")]
+        [Aliases("dlconfig", "download")]
+        public async Task DownloadConfig(CommandContext ctx)
+        {
+            var configs = _buildService.GetBuildConfigurations();
+            if (configs.Count == 0)
+            {
+                await ctx.RespondAsync(_embed.Message("There are no configurations to download.", DiscordColor.Red));
+                return;
+            }
+            
+            var sb = new StringBuilder();
+            for (int i = 0; i < configs.Count; i++)
+            {
+                sb.AppendLine($"{i + 1} - {configs[i].Name}");
+            }
+
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle("UnrealBuildTool - Download Build Configuration")
+                .WithDescription("Please type the number of the build configuration to download.")
+                .WithColor(DiscordColor.Blurple)
+                .AddField("**Available Configurations**", sb.ToString())
+                .Build();
+
+            await ctx.RespondAsync(embed);
+
+            var interactivity = ctx.Client.GetInteractivity();
+
+            var result =
+                await interactivity.WaitForMessageAsync(m => m.Author.Id == ctx.User.Id, TimeSpan.FromMinutes(1));
+
+            if (result.TimedOut)
+            {
+                await ctx.RespondAsync(_embed.Message("Timed out, please try again.", DiscordColor.Red));
+                return;
+            }
+
+            int selection;
+            if (!int.TryParse(result.Result.Content, out selection))
+            {
+                await ctx.RespondAsync(_embed.Message("Invalid number specified, please try again.", DiscordColor.Red));
+                return;
+            }
+
+            selection--;
+            if (selection < 0 || selection >= configs.Count)
+            {
+                await ctx.RespondAsync(_embed.Message("Please specify a valid number.", DiscordColor.Red));
+                return;
+            }
+
+            var config = configs[selection];
+            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
+
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            await writer.WriteAsync(json);
+            await writer.FlushAsync();
+
+            var builder = new DiscordMessageBuilder()
+                .WithFile(config.SourceFile, stream);
+            
+            await ctx.Channel.SendMessageAsync(builder);
+        }
+        
+        [Command("uploadconfig")]
+        [Aliases("upload")]
+        public async Task UploadConfig(CommandContext ctx)
+        {
+            if (!ctx.Message.Attachments.Any())
+            {
+                await ctx.RespondAsync(_embed.Message(
+                    "Please send a valid configuration file as an attachment to your command.", DiscordColor.Red));
+                return;
+            }
+
+            var file = ctx.Message.Attachments[0];
+            if (!file.FileName.ToLower().EndsWith(".json"))
+            {
+                await ctx.RespondAsync(_embed.Message("File must be a valid .json file.", DiscordColor.Red));
+                return;
+            }
+
+            var response = await _httpClient.GetAsync(file.Url);
+            if (!response.IsSuccessStatusCode)
+            {
+                await ctx.RespondAsync(
+                    _embed.Message($"Failed to download configuration. HTTP Error Code '{response.StatusCode}'", DiscordColor.Red));
+                return;
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var buildConfig = JsonConvert.DeserializeObject<BuildConfiguration>(json);
+            }
+            catch (Exception e)
+            {
+                await ctx.RespondAsync(_embed.Message($"Failed to parse json into BuildConfiguration: {e.Message}.",
+                    DiscordColor.Red));
+                return;
+            }
+
+            await File.WriteAllTextAsync($"configs/buildConfigurations/{file.FileName}", json);
+            await ctx.RespondAsync(_embed.Message($"Saved configuration to {file.FileName}. Don't forget to reload configs.", DiscordColor.Green));
+        }
+
+        [Command("configtemplate")]
+        public async Task GetBuildConfigTemplate(CommandContext ctx)
+        {
+            
+        }
+
+        [Command("stagetemplate")]
+        public async Task GetStageTemplates(CommandContext ctx)
+        {
+            
         }
     }
 }

@@ -47,6 +47,11 @@ namespace UnrealBuildTool.Build
         /// </summary>
         [JsonProperty]
         public List<BuildConfigurationStage> Stages { get; protected set; }
+        
+        /// <summary>
+        /// The source file this build configuration was loaded from.
+        /// </summary>
+        public string SourceFile { get; set; }
 
         public string GetProjectFilePath()
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -104,6 +105,7 @@ namespace UnrealBuildTool
                 .AddSingleton(_client)
                 .AddSingleton(_config)
                 .AddSingleton(_log)
+                .AddSingleton<HttpClient>()
                 .AddSingleton<DiscordEventHandler>()
                 .AddSingleton<EvaluationService>()
                 .AddSingleton<EmbedService>()

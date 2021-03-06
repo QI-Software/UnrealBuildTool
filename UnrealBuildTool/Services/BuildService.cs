@@ -247,6 +247,7 @@ namespace UnrealBuildTool.Services
                 }
                 
                 _log.Information(LogCategory + $"Loaded build configuration '{config.Name}'.");
+                config.SourceFile = filename;
                 _buildConfigurations.Add(config);
             }
         }

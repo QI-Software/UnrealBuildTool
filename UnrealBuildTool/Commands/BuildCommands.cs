@@ -368,7 +368,7 @@ namespace UnrealBuildTool.Commands
                 return;
             }
 
-            await File.WriteAllTextAsync($"configs/buildConfigurations/{file.FileName}", json);
+            await File.WriteAllTextAsync($"config/buildConfigurations/{file.FileName}", json);
             await ctx.RespondAsync(_embed.Message($"Saved configuration to {file.FileName}. Don't forget to reload configs.", DiscordColor.Green));
         }
 

@@ -129,12 +129,12 @@ namespace UnrealBuildTool.Build.Stages
                 };
 
                 FailureReason = null;
-                _ = ConsumeReader(_steamcmdProcess.StandardOutput);
                 _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
                 _steamcmdProcess.Start();
                 _steamcmdProcess.BeginOutputReadLine();
                 _steamcmdProcess.BeginErrorReadLine();
-
+                
+                _ = ConsumeReader(_steamcmdProcess.StandardOutput);
                 _steamcmdProcess.WaitForExit();
 
                 if (IsCancelled)

@@ -10,7 +10,6 @@ namespace UnrealBuildTool.Build.Stages
     {
         private Process _steamcmdProcess;
         private Task _hangCheck;
-        private bool _hanging = false;
         
         public override string GetName() => nameof(UploadToSteam);
 
@@ -75,7 +74,7 @@ namespace UnrealBuildTool.Build.Stages
             return new List<BuildStage>();
         }
 
-        public override async Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync()
         {
             TryGetConfigValue("SteamCMDPath", out string steamcmdPath);
             TryGetConfigValue("Username", out string username);
@@ -87,7 +86,7 @@ namespace UnrealBuildTool.Build.Stages
             if (!File.Exists(appVDFPath))
             {
                 FailureReason = $"Cannot find App VDF at '{appVDFPath}'.";
-                return isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings;
+                return Task.FromResult(isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
             }
 
             var arguments = new[]
@@ -120,8 +119,10 @@ namespace UnrealBuildTool.Build.Stages
                     StartInfo =
                     {
                         FileName = steamcmdPath,
-                        UseShellExecute = true,
-                        CreateNoWindow = false,
+                        Arguments = string.Join(' ', arguments);
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
                     }
                 };
 
@@ -129,49 +130,36 @@ namespace UnrealBuildTool.Build.Stages
                 _steamcmdProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
                 _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
                 _steamcmdProcess.Start();
-                
+                _steamcmdProcess.BeginOutputReadLine();
+                _steamcmdProcess.BeginErrorReadLine();
+
                 // Verify that SteamCMD doesn't wait for input. If it does, murder it.
                 _hangCheck = Task.Run(async () =>
                 {
-                    while (true)
-                    {
-                        await Task.Delay(1000);
+                    await Task.Delay(1000);
                     
-                        if (_steamcmdProcess == null || _steamcmdProcess.HasExited)
+                    if (_steamcmdProcess == null || _steamcmdProcess.HasExited)
+                    {
+                        return;
+                    }
+                    
+                    foreach (ProcessThread pThread in _steamcmdProcess.Threads)
+                    {
+                        if (pThread.WaitReason == ThreadWaitReason.UserRequest)
                         {
+                            FailureReason = "SteamCMD was waiting for a user input and was killed for it.";
+                            OnConsoleError(FailureReason);
+                            _steamcmdProcess.Kill(true);
                             return;
-                        }
-
-                        bool bHangingNow = false;
-                        foreach (ProcessThread pThread in _steamcmdProcess.Threads)
-                        {
-                            if (pThread.WaitReason == ThreadWaitReason.UserRequest)
-                            {
-                                OnConsoleError($"UBT: SteamCMD thread {pThread.Id} is hanging!");
-                                bHangingNow = true;
-                                _hanging = true;
-                                break;
-                            }
-                        }
-
-                        if (!bHangingNow && _hanging)
-                        {
-                            OnConsoleOut("UBT: SteamCMD is no longer hanging.");
-                            _hanging = false;
                         }
                     }
                 });
 
-                while (!_steamcmdProcess.HasExited)
-                {
-                    await Task.Delay(1000);
-                    
-                    OnConsoleOut("UBT: SteamCMD is still active.");
-                }
+                _steamcmdProcess.WaitForExit();
 
                 if (IsCancelled)
                 {
-                    return StageResult.Failed;
+                    return Task.FromResult(StageResult.Failed);
                 }
                 
                 // Once exited, check if the FailureReason isn't nuLL.
@@ -182,7 +170,7 @@ namespace UnrealBuildTool.Build.Stages
 
                 switch (_steamcmdProcess.ExitCode)
                 {
-                    case 0: return StageResult.Successful;
+                    case 0: return Task.FromResult(StageResult.Successful);
                     case 3:
                         FailureReason = "Failed to load steamclient.dll";
                         break;
@@ -213,7 +201,7 @@ namespace UnrealBuildTool.Build.Stages
                 }
             }
 
-            return isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings;
+            return Task.FromResult(isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
         }
 
         public override Task OnCancellationRequestedAsync()

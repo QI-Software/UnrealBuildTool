@@ -237,6 +237,7 @@ namespace UnrealBuildTool.Build
                         }
                     });
 
+                    _currentStage++;
                     continue;
                 }
                 

@@ -269,6 +269,15 @@ namespace UnrealBuildTool.Build
                 {
                     _isFailed = true;
                     OnFailed(stage);
+                    
+                    // Cancel any ongoing background stages
+                    var ongoing = _stages
+                        .Where(s => s.BackgroundTask != null)
+                        .Where(s => s.StageResult == StageResult.Running)
+                        .ToList();
+                        
+                    ongoing.ForEach(async s => await s.OnCancellationRequestedAsync());
+                    Task.WaitAll(ongoing.Select(s => s.BackgroundTask).ToArray());
                     return;
                 }
                 

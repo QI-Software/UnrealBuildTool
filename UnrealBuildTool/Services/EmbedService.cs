@@ -78,6 +78,27 @@ namespace UnrealBuildTool.Services
                 sb.AppendLine($"{emote} {stage.GetDescription()}");
                 if (stage.RunInBackground() && stage.StageResult != StageResult.Scheduled)
                 {
+                    switch (stage.StageResult)
+                    {
+                        case StageResult.Scheduled:
+                            emote = "⏳";
+                            break;
+                        case StageResult.Successful:
+                            emote = "✅";
+                            break;
+                        case StageResult.SuccessfulWithWarnings:
+                            emote = "⚠";
+                            break;
+                        case StageResult.Failed:
+                            emote = "⛔";
+                            break;
+                        case StageResult.Running:
+                            emote = DiscordEmoji.FromGuildEmote(_client, _config.Discord.LoadingEmoteId.GetValueOrDefault()).ToString();
+                            break;
+                        default:
+                            emote = "?";
+                            break;
+                    }
                     backgroundSb.AppendLine($"{emote} {stage.GetDescription()}");
                 }
             }

@@ -16,7 +16,7 @@ namespace UnrealBuildTool.Build.Stages
         public override string GetDescription()
         {
             TryGetConfigValue("FriendlyName", out string friendlyName);
-            return $"Upload to Steam using VDF '{friendlyName}'";
+            return $"Upload app '{friendlyName}' to Steam.";
         }
 
         public override bool IsStageConfigurationValid(out string ErrorMessage)

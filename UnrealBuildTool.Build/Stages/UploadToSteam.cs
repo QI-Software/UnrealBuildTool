@@ -123,13 +123,11 @@ namespace UnrealBuildTool.Build.Stages
                         Arguments = string.Join(' ', arguments),
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
-                        RedirectStandardInput = true,
                         UseShellExecute = false,
                     }
                 };
 
                 FailureReason = null;
-                _steamcmdProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
                 _steamcmdProcess.Start();
                 _steamcmdProcess.BeginOutputReadLine();
                 _steamcmdProcess.BeginErrorReadLine();

@@ -46,8 +46,8 @@ namespace UnrealBuildTool.Build.Stages
                 {
                     FileName = file,
                     Arguments = arguments,
-                    RedirectStandardOutput = shellExecute,
-                    RedirectStandardError = shellExecute,
+                    RedirectStandardOutput = !shellExecute,
+                    RedirectStandardError = !shellExecute,
                     UseShellExecute = shellExecute,
                 }
             };

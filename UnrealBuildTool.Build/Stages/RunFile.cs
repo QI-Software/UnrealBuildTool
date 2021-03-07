@@ -24,7 +24,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("File",  "YourFile.exe");
             AddDefaultConfigurationKey("Arguments",  "");
             AddDefaultConfigurationKey("Description", "Run console command.");
-            AddDefaultConfigurationKey("UseShellExecute", true);
+            AddDefaultConfigurationKey("UseShellExecute", false);
         }
 
         public override Task<StageResult> DoTaskAsync()
@@ -59,7 +59,7 @@ namespace UnrealBuildTool.Build.Stages
             {
                 _fileProcess.Start();
 
-                if (shellExecute)
+                if (!shellExecute)
                 {
                     _fileProcess.BeginOutputReadLine();
                     _fileProcess.BeginErrorReadLine();

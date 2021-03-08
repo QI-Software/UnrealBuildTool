@@ -73,8 +73,21 @@ namespace UnrealBuildTool.Commands
             };
 
             var output = new List<string>();
-            _lastCmdProcess.OutputDataReceived += (sender, args) => output.Add(args.Data);
-            _lastCmdProcess.ErrorDataReceived += (sender, args) => output.Add($"STDERR> {args.Data}");
+            _lastCmdProcess.OutputDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    output.Add(args.Data);
+                }
+            };
+            
+            _lastCmdProcess.ErrorDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    output.Add($"STDERR> {args.Data}");
+                }
+            };
 
             _lastCmdProcess.Start();
             _lastCmdProcess.BeginOutputReadLine();

@@ -101,6 +101,7 @@ namespace UnrealBuildTool.Commands
                 var str = output[i];
                 if (len + str.Length < 1990)
                 {
+                    len += str.Length;
                     grabbedInput.Add(str);
                 }
                 else

@@ -43,9 +43,9 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue("ProcessName", out string name);
             TryGetConfigValue("KillChildren", out bool killChildren);
 
-            foreach (var process in Process.GetProcessesByName(name))
+            foreach (var process in Process.GetProcesses())
             {
-                if (process != null)
+                if (process != null && process.StartInfo.FileName.ToLower() == name.ToLower())
                 {
                     OnConsoleOut($"UBT: Killing process [{process.Id}] {process.ProcessName}");
                     process.Kill(killChildren);

@@ -65,8 +65,7 @@ namespace UnrealBuildTool.Build.Stages
                     catch (Exception)
                     {
                         OnConsoleError($"UBT: Failed to create destination directory '{directory}'");
-                        TryGetConfigValue("IsCritical", out bool crit);
-                        if (crit)
+                        if (critical)
                         {
                             FailureReason = $"UBT: Failed to create destination directory '{directory}'";
                             return Task.FromResult(critical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
@@ -79,6 +78,7 @@ namespace UnrealBuildTool.Build.Stages
             if (!File.Exists(target))
             {
                 FailureReason = $"Could not find target file '{target}'";
+                OnConsoleOut($"UBT: {FailureReason}");
                 return Task.FromResult(critical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
             }
 
@@ -115,7 +115,6 @@ namespace UnrealBuildTool.Build.Stages
             {
                 File.Copy(target, destination, true);
                 return Task.FromResult(StageResult.Successful);
-
             }
             catch (Exception e)
             {

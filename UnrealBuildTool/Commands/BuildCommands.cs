@@ -208,9 +208,9 @@ namespace UnrealBuildTool.Commands
 
             var warning = $@"You are about to start a build with the **{config.Name}** configuration.
 
-                             Press ✅ to start the build.
+                             Say **Start** to begin.
 
-                             Press ⛔ to cancel.";
+                             Say **Cancel** to abort.";
 
 
             embed = new DiscordEmbedBuilder()
@@ -222,17 +222,14 @@ namespace UnrealBuildTool.Commands
                 .Build();
 
             var msg = await ctx.RespondAsync(embed);
-            await msg.CreateReactionAsync(DiscordEmoji.FromUnicode("✅"));
-            _ = msg.CreateReactionAsync(DiscordEmoji.FromUnicode("⛔"));
 
-            var reactResult = await interactivity.WaitForReactionAsync(m =>
-            {
-                return m.Message.Id == msg.Id
-                       && m.User.Id == ctx.User.Id
-                       && (m.Emoji == DiscordEmoji.FromUnicode("✅") || m.Emoji == DiscordEmoji.FromUnicode("⛔"));
-            }, TimeSpan.FromMinutes(1));
+            var reactResult = await interactivity.WaitForMessageAsync(m =>
+                {
+                    return m.Author.Id == ctx.User.Id  && (m.Content.ToLower() == "start" || m.Content.ToLower() == "cancel");
+                },
+                TimeSpan.FromMinutes(1));
 
-            if (reactResult.TimedOut || reactResult.Result.Emoji == DiscordEmoji.FromUnicode("⛔"))
+            if (reactResult.TimedOut || reactResult.Result.Content.ToLower() != "start")
             {
                 await ctx.RespondAsync(_embed.Message("Aborting build.", DiscordColor.Red));
                 return;
@@ -299,8 +296,8 @@ namespace UnrealBuildTool.Commands
 
             var interactivity = ctx.Client.GetInteractivity();
 
-            var result =
-                await interactivity.WaitForMessageAsync(m => m.Author.Id == ctx.User.Id, TimeSpan.FromMinutes(1));
+            var result = await interactivity.WaitForMessageAsync(m => m.Author.Id == ctx.User.Id,
+                TimeSpan.FromMinutes(1));
 
             if (result.TimedOut)
             {

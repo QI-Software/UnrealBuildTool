@@ -52,7 +52,7 @@ namespace UnrealBuildTool.Build.Stages
                 var msbuildArguments = new[]
                 {
                     $"\"{BuildConfig.GetSolutionFilePath()}\"",
-                    $"-p:Configuration=\"Development Editor\"",
+                    "-p:Configuration=\"Development Editor\"",
                     $"/property:Platform=\"{platform}\"",
                 };
 
@@ -167,15 +167,15 @@ namespace UnrealBuildTool.Build.Stages
         public override Task OnCancellationRequestedAsync()
         {
             base.OnCancellationRequestedAsync();
-            
-            if (_ubtProcess != null && !_ubtProcess.HasExited)
-            {
-                _ubtProcess.Kill(true);
-            }
 
             if (_msbuildProcess != null && !_msbuildProcess.HasExited)
             {
                 _msbuildProcess.Kill(true);
+            }
+            
+            if (_ubtProcess != null && !_ubtProcess.HasExited)
+            {
+                _ubtProcess.Kill(true);
             }
             
             return Task.CompletedTask;

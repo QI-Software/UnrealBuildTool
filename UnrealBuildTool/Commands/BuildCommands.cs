@@ -318,13 +318,17 @@ namespace UnrealBuildTool.Commands
                 await ctx.RespondAsync(_embed.Message("Please specify a valid number.", DiscordColor.Red));
                 return;
             }
-
+            
             var config = configs[selection];
-            var builder = new DiscordMessageBuilder()
-                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
-                .WithFile($"config/buildConfigurations/{config.SourceFile}");
+            
+            using (var stream = File.OpenRead($"config/buildConfigurations/{config.SourceFile}"))
+            {
+                var builder = new DiscordMessageBuilder()
+                    .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                    .WithFile(config.SourceFile, stream);
 
-            await ctx.Channel.SendMessageAsync(builder);
+                await ctx.Channel.SendMessageAsync(builder);
+            }
         }
         
         [Command("uploadconfig")]
@@ -372,21 +376,27 @@ namespace UnrealBuildTool.Commands
         [Command("configtemplate")]
         public async Task GetBuildConfigTemplate(CommandContext ctx)
         {
-            var builder = new DiscordMessageBuilder()
-                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
-                .WithFile($"config/buildTemplate.json");
-
-            await ctx.RespondAsync(builder);
+            using (var stream = File.OpenRead("config/buildTemplate.json"))
+            {
+                var builder = new DiscordMessageBuilder()
+                    .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                    .WithFile("config/buildTemplate.json", stream);
+                
+                await ctx.RespondAsync(builder);
+            }
         }
 
         [Command("stagetemplate")]
         public async Task GetStageTemplates(CommandContext ctx)
         {
-            var builder = new DiscordMessageBuilder()
-                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
-                .WithFile($"config/stageTemplates.json");
-
-            await ctx.RespondAsync(builder);
+            using (var stream = File.OpenRead("config/stageTemplates.json"))
+            {
+                var builder = new DiscordMessageBuilder()
+                    .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                    .WithFile("config/stageTemplates.json", stream);
+                
+                await ctx.RespondAsync(builder);
+            }
         }
     }
 }

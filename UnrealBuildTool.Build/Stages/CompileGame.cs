@@ -140,7 +140,7 @@ namespace UnrealBuildTool.Build.Stages
                         UseShellExecute = false,
                     }
                 };
-                OnConsoleOut("UBT: Running compile with command line: " + _ubtProcess.StartInfo.Arguments);
+                OnConsoleOut($"UBT: Running compile with command line: '{_ubtProcess.StartInfo.Arguments}'");
                 
                 _ubtProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
                 _ubtProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);

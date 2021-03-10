@@ -98,6 +98,8 @@ namespace UnrealBuildTool.Build.Stages
                 },
             };
             
+            OnConsoleOut($"UBT: Running AutomationTool for cook stage with arguments '{_uatProcess.StartInfo.Arguments}'");
+            
             _uatProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
             _uatProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
             _uatProcess.Start();

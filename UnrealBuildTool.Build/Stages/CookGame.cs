@@ -25,7 +25,6 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("GamePlatform", "Win64");
             AddDefaultConfigurationKey("GameConfiguration", "Shipping");
             AddDefaultConfigurationKey("GameTarget", "TargetProject");
-            AddDefaultConfigurationKey("IsServer", false);
         }
 
         public override Task<StageResult> DoTaskAsync()
@@ -33,7 +32,8 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue("GameConfiguration", out string gameConfig);
             TryGetConfigValue("GamePlatform", out string gamePlatform);
             TryGetConfigValue("GameTarget", out string gameTarget);
-            TryGetConfigValue("IsServer", out bool isServer);
+            
+            bool isServer = gameTarget.ToLower().Contains("server");
             
             var ue4cmd = $"{BuildConfig.EngineDirectory}/Engine/Binaries/Win64/UE4Editor-Cmd.exe";
             ue4cmd = ue4cmd.Replace(@"\", "/").Replace("//", "/");

@@ -43,6 +43,8 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue("ProcessName", out string name);
             TryGetConfigValue("KillChildren", out bool killChildren);
 
+            OnConsoleOut($"UBT: Searching for process '{name}'");
+
             foreach (var process in Process.GetProcessesByName(name))
             {
                 if (process != null && !process.HasExited)

@@ -51,6 +51,7 @@ namespace UnrealBuildTool.Build
         /// <summary>
         /// The source file this build configuration was loaded from.
         /// </summary>
+        [JsonIgnore]
         public string SourceFile { get; set; }
 
         public string GetProjectFilePath()

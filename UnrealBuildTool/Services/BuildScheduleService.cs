@@ -97,9 +97,13 @@ namespace UnrealBuildTool.Services
                 _schedules.Add(schedule);
             }
 
-            _backgroundScheduleSource = new CancellationTokenSource();
-            _backgroundScheduleTask = Task.Run(async () => await RunBuildSchedulesAsync(), _backgroundScheduleSource.Token);
-            _log.Information(LogCategory + "Started background build schedule task.");
+            _client.Ready += (client, args) =>
+            {
+                _backgroundScheduleSource = new CancellationTokenSource();
+                _backgroundScheduleTask = Task.Run(async () => await RunBuildSchedulesAsync(), _backgroundScheduleSource.Token);
+                _log.Information(LogCategory + "Started background build schedule task.");
+                return Task.CompletedTask;
+            };
         }
         
         private async Task RunBuildSchedulesAsync()

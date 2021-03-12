@@ -110,8 +110,8 @@ namespace UnrealBuildTool.Services
             {
                 foreach (var schedule in _schedules)
                 {
-                    if (DateTimeOffset.Now >= schedule.StartDate && 
-                        (schedule.LastRunDate == null || DateTimeOffset.Now > schedule.LastRunDate + schedule.RepeatInterval))
+                    if (DateTimeOffset.UtcNow >= schedule.StartDate && 
+                        (schedule.LastRunDate == null || DateTimeOffset.UtcNow > schedule.LastRunDate + schedule.RepeatInterval))
                     {
                         schedule.LastRunDate =
                             (schedule.LastRunDate ?? schedule.StartDate) + schedule.RepeatInterval;

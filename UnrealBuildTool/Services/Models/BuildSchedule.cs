@@ -35,6 +35,7 @@ namespace UnrealBuildTool.Services.Models
         [JsonProperty] 
         public TimeSpan RepeatInterval  { get; internal set; }
         
+        [JsonIgnore]
         public string FilePath { get; internal set; }
     }
 }

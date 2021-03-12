@@ -24,10 +24,10 @@ namespace UnrealBuildTool.Services.Models
         public DateTimeOffset StartDate  { get; internal set; }
 
         /// <summary>
-        /// Last date at which this build schedule was executed, if any.
+        /// Next date at which this build schedule should be executed, if any.
         /// </summary>
         [JsonProperty]
-        public DateTimeOffset? LastRunDate  { get; internal set; }
+        public DateTimeOffset? NextRunDate  { get; internal set; }
 
         /// <summary>
         /// Amount of time to wait between each runs of this schedule.

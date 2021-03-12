@@ -55,7 +55,7 @@ namespace UnrealBuildTool.Services
                 ConfigurationName = "Build Configuration Name",
                 StartDate = DateTimeOffset.UtcNow,
                 RepeatInterval = TimeSpan.FromHours(1),
-                LastRunDate = null,
+                NextRunDate = null,
             };
 
             try
@@ -114,11 +114,11 @@ namespace UnrealBuildTool.Services
             {
                 foreach (var schedule in _schedules)
                 {
-                    if (DateTimeOffset.UtcNow >= schedule.StartDate && 
-                        (schedule.LastRunDate == null || DateTimeOffset.UtcNow > schedule.LastRunDate + schedule.RepeatInterval))
+                    if ((schedule.NextRunDate != null && DateTimeOffset.UtcNow >= schedule.NextRunDate)
+                        || DateTimeOffset.UtcNow >= schedule.StartDate)
                     {
-                        schedule.LastRunDate =
-                            (schedule.LastRunDate ?? schedule.StartDate) + schedule.RepeatInterval;
+                        schedule.NextRunDate =
+                            (schedule.NextRunDate ?? schedule.StartDate) + schedule.RepeatInterval;
 
                         try
                         {

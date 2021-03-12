@@ -10,6 +10,9 @@ namespace UnrealBuildTool.Services
         [JsonProperty] 
         public DiscordConfig Discord { get; private set; } = new DiscordConfig();
 
+        [JsonProperty] 
+        public int BuildScheduleCheckIntervalMilliseconds { get; private set; } = 1000;
+
         public static bool Exists()
         {
             return File.Exists("config/config.json");

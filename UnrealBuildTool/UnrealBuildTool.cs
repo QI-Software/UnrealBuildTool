@@ -110,7 +110,8 @@ namespace UnrealBuildTool
                 .AddSingleton<EvaluationService>()
                 .AddSingleton<EmbedService>()
                 .AddSingleton<BuildNotificationService>()
-                .AddSingleton<BuildService>();
+                .AddSingleton<BuildService>()
+                .AddSingleton<BuildScheduleService>();
 
             return services.BuildServiceProvider();
         }
@@ -120,6 +121,8 @@ namespace UnrealBuildTool
             _services.GetRequiredService<DiscordEventHandler>();
 
             await _services.GetRequiredService<BuildService>().InitializeAsync();
+
+            await _services.GetRequiredService<BuildScheduleService>().InitializeAsync();
 
             // This is done last, since the embed service is likely required by others first, and it may require others itself.
             _services.GetRequiredService<EmbedService>().InjectServices(_services);

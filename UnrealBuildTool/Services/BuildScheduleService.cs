@@ -92,6 +92,12 @@ namespace UnrealBuildTool.Services
                     continue;
                 }
 
+                if (schedule.RepeatInterval.TotalMilliseconds <= 0)
+                {
+                    _log.Warning(LogCategory + $"Cannot load schedule '{file}': negative or zero repeat interval.");
+                    continue;
+                }
+
                 schedule.FilePath = file;
                 _log.Information(LogCategory + $"Loaded build schedule '{file}'.");
                 _schedules.Add(schedule);
@@ -114,11 +120,15 @@ namespace UnrealBuildTool.Services
             {
                 foreach (var schedule in _schedules)
                 {
-                    var nextDate = schedule.NextRunDate ?? schedule.StartDate;
-                    if (DateTimeOffset.UtcNow >= nextDate)
+                    schedule.NextRunDate ??= schedule.StartDate;
+                    if (DateTimeOffset.UtcNow >= schedule.NextRunDate)
                     {
-                        schedule.NextRunDate =
-                            (schedule.NextRunDate ?? schedule.StartDate) + schedule.RepeatInterval;
+                        var span = (DateTimeOffset.UtcNow - schedule.NextRunDate).Value;
+                        var amount = Math.Ceiling((double)span.Ticks / schedule.RepeatInterval.Ticks);
+                        amount = Math.Min(amount, 1);
+                        var newSpan = schedule.RepeatInterval * amount;
+                        
+                        schedule.NextRunDate += newSpan;
 
                         try
                         {

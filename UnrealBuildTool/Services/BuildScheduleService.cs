@@ -114,8 +114,8 @@ namespace UnrealBuildTool.Services
             {
                 foreach (var schedule in _schedules)
                 {
-                    if ((schedule.NextRunDate != null && DateTimeOffset.UtcNow >= schedule.NextRunDate)
-                        || DateTimeOffset.UtcNow >= schedule.StartDate)
+                    var nextDate = schedule.NextRunDate ?? schedule.StartDate;
+                    if (DateTimeOffset.UtcNow >= nextDate)
                     {
                         schedule.NextRunDate =
                             (schedule.NextRunDate ?? schedule.StartDate) + schedule.RepeatInterval;

@@ -125,7 +125,7 @@ namespace UnrealBuildTool.Services
                     {
                         var span = (DateTimeOffset.UtcNow - schedule.NextRunDate).Value;
                         var amount = Math.Ceiling((double)span.Ticks / schedule.RepeatInterval.Ticks);
-                        amount = Math.Min(amount, 1);
+                        amount = Math.Max(amount, 1);
                         var newSpan = schedule.RepeatInterval * amount;
                         
                         schedule.NextRunDate += newSpan;

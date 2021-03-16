@@ -106,7 +106,8 @@ namespace UnrealBuildTool.Services
             _client.Ready += (client, args) =>
             {
                 _backgroundScheduleSource = new CancellationTokenSource();
-                _backgroundScheduleTask = Task.Run(async () => await RunBuildSchedulesAsync(), _backgroundScheduleSource.Token);
+                _backgroundScheduleTask = Task.Run(async () => await RunBuildSchedulesAsync(),
+                    _backgroundScheduleSource.Token);
                 _log.Information(LogCategory + "Started background build schedule task.");
                 return Task.CompletedTask;
             };
@@ -150,35 +151,37 @@ namespace UnrealBuildTool.Services
                 
                 if (!_buildService.IsBuilding())
                 {
-                    var schedule = _queuedBuilds.Peek();
-                    var configs = _buildService.GetBuildConfigurations();
-                    var config = configs
-                        .FirstOrDefault(c => c.Name.ToLower() == schedule.ConfigurationName.ToLower());
+                    if (_queuedBuilds.Count > 0)
+                    {
+                        var schedule = _queuedBuilds.Peek();
+                        var configs = _buildService.GetBuildConfigurations();
+                        var config = configs
+                            .FirstOrDefault(c => c.Name.ToLower() == schedule.ConfigurationName.ToLower());
 
-                    if (config == null)
-                    {
-                        _log.Warning(LogCategory + $"Cannot run schedule '{schedule.Name}': unknown build configuration '{schedule.ConfigurationName}'");
-                    }
-                    else
-                    {
-                        try
+                        if (config == null)
                         {
-                            if (_buildService.StartBuild(config, _client.CurrentUser, out string errorMessage))
+                            _log.Warning(LogCategory + $"Cannot run schedule '{schedule.Name}': unknown build configuration '{schedule.ConfigurationName}'");
+                        }
+                        else
+                        {
+                            try
                             {
-                                _log.Information(LogCategory + $"Successfully ran schedule '{schedule.Name}'.");
-                                _queuedBuilds.Dequeue();
+                                if (_buildService.StartBuild(config, _client.CurrentUser, out string errorMessage))
+                                {
+                                    _log.Information(LogCategory + $"Successfully ran schedule '{schedule.Name}'.");
+                                    _queuedBuilds.Dequeue();
+                                }
+                                else
+                                {
+                                    _log.Warning(LogCategory + $"Failed to run schedule '{schedule.Name}': {errorMessage}");
+                                    _log.Warning(LogCategory + "Another attempt will be made.");
+                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                _log.Warning(LogCategory + $"Failed to run schedule '{schedule.Name}': {errorMessage}");
-                                _log.Warning(LogCategory + "Another attempt will be made.");
+                                _log.Error(LogCategory + $"An error has occurred while attempting to start the scheduled build: {ex.Message}. Retrying...");
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            _log.Error(LogCategory + $"An error has occurred while attempting to start the scheduled build: {ex.Message}. Retrying...");
-                        }
-
                     }
                 }
                 

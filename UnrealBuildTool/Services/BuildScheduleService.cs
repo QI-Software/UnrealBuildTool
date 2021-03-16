@@ -150,7 +150,7 @@ namespace UnrealBuildTool.Services
                 
                 if (!_buildService.IsBuilding())
                 {
-                    var schedule = _queuedBuilds.Dequeue();
+                    var schedule = _queuedBuilds.Peek();
                     var configs = _buildService.GetBuildConfigurations();
                     var config = configs
                         .FirstOrDefault(c => c.Name.ToLower() == schedule.ConfigurationName.ToLower());
@@ -161,16 +161,24 @@ namespace UnrealBuildTool.Services
                     }
                     else
                     {
-                        if (_buildService.StartBuild(config, _client.CurrentUser, out string errorMessage))
+                        try
                         {
-                            _log.Information(LogCategory + $"Successfully ran schedule '{schedule.Name}'.");
+                            if (_buildService.StartBuild(config, _client.CurrentUser, out string errorMessage))
+                            {
+                                _log.Information(LogCategory + $"Successfully ran schedule '{schedule.Name}'.");
+                                _queuedBuilds.Dequeue();
+                            }
+                            else
+                            {
+                                _log.Warning(LogCategory + $"Failed to run schedule '{schedule.Name}': {errorMessage}");
+                                _log.Warning(LogCategory + "Another attempt will be made.");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            _log.Warning(LogCategory + $"Failed to run schedule '{schedule.Name}': {errorMessage}");
-                            _log.Warning(LogCategory + "Another attempt will be made.");
-                            _queuedBuilds.Enqueue(schedule);
+                            _log.Error(LogCategory + $"An error has occurred while attempting to start the scheduled build: {ex.Message}. Retrying...");
                         }
+
                     }
                 }
                 

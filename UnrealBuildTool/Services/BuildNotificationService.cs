@@ -171,9 +171,13 @@ namespace UnrealBuildTool.Services
             }
             
             _log.Information(LogCategory + "Stopped console output handler.");
-            await _buildOutputChannel.SendMessageAsync(
-                $"{_currentBuild?.GetInstigator().Mention} the build requires your attention.");
-            
+
+            if (_currentBuild?.GetInstigator().IsBot is false)
+            {
+                await _buildOutputChannel.SendMessageAsync(
+                    $"{_currentBuild?.GetInstigator().Mention} the build requires your attention.");
+            }
+
             _currentBuild = null;
             _buildOutputMessage = null;
             _currentOutput = new ArrayList();

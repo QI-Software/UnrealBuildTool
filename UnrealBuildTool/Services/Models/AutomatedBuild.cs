@@ -277,7 +277,7 @@ namespace UnrealBuildTool.Build
                         .ToList();
                         
                     ongoing.ForEach(async s => await s.OnCancellationRequestedAsync());
-                    Task.WaitAll(ongoing.Select(s => s.BackgroundTask).ToArray());
+                    await Task.WhenAll(ongoing.Select(s => s.BackgroundTask).ToArray());
                     return;
                 }
                 
@@ -292,7 +292,7 @@ namespace UnrealBuildTool.Build
             
             // Wait for all background tasks to finish.
             var backgroundStages = _stages.Where(s => s.RunInBackground() && s.BackgroundTask != null).ToList();
-            Task.WaitAll(backgroundStages.Select(s => s.BackgroundTask).ToArray());
+            await Task.WhenAll(backgroundStages.Select(s => s.BackgroundTask).ToArray());
 
             if (_isCancelled)
             {

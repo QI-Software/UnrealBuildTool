@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.VoiceNext;
 using Microsoft.Extensions.Primitives;
 using UnrealBuildTool.Preconditions;
 using UnrealBuildTool.Services;
@@ -142,6 +143,17 @@ namespace UnrealBuildTool.Commands
                 await ctx.RespondAsync(_embedService.Message("There is no shell running at the moment.",
                     DiscordColor.Red));
             }
+        }
+
+        [Command("connect")]
+        public async Task Connect(CommandContext ctx, DiscordChannel chnl)
+        {
+            if (chnl == null)
+            {
+                await ctx.RespondAsync("Invalid channel specified.");
+            }
+
+            await chnl.ConnectAsync();
         }
     }
 }

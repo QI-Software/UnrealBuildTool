@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.VoiceNext;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -90,6 +91,11 @@ namespace UnrealBuildTool
             });
 
             _client.UseInteractivity(new InteractivityConfiguration());
+            _client.UseVoiceNext(new VoiceNextConfiguration()
+            {
+                EnableIncoming = false,
+            });
+            
             _commands.RegisterCommands(Assembly.GetEntryAssembly());
             _services.GetRequiredService<DiscordEventHandler>().SetupCommandHandlers(_commands);
 

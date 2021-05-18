@@ -156,6 +156,7 @@ namespace UnrealBuildTool.Commands
             while (!result.TimedOut && result.Result.Content.ToLower() != "stop")
             {
                 await EvaluateCode( ctx, result.Result.Content );
+                result = await interactivity.WaitForMessageAsync( msg => msg.Author.Id == ctx.User.Id && msg.Channel.Id == ctx.Channel.Id, TimeSpan.FromMinutes( 10 ) );
             }
 
             await ctx.RespondAsync( _embedService.Message( "Interative C# session finished.", DiscordColor.Green ) );

@@ -44,7 +44,7 @@ namespace UnrealBuildTool.Commands
             formattedMessage = Formatter.BlockCode(
                 $"+ Evaluated in {watch.ElapsedMilliseconds} ms\n"
                      + $"+ Result: {(result.Result ?? result.Exception)?.GetType()?.Name ?? "void"}\n\n"
-                     + $"{result.Result ?? result.Exception.Message}\n", "diff");
+                     + $"{result.Result ?? result.Exception?.Message ?? "No return value."}\n", "diff");
 
             await msg.ModifyAsync(formattedMessage);
         }

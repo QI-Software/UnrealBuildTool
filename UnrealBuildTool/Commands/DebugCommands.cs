@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,8 +7,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.VoiceNext;
-using Microsoft.Extensions.Primitives;
+using DSharpPlus.Interactivity.Extensions;
 using UnrealBuildTool.Preconditions;
 using UnrealBuildTool.Services;
 
@@ -145,15 +145,20 @@ namespace UnrealBuildTool.Commands
             }
         }
 
-        [Command("connect")]
-        public async Task Connect(CommandContext ctx, DiscordChannel chnl)
+        [Command( "interactive" )]
+        public async Task InteractiveDebug( CommandContext ctx )
         {
-            if (chnl == null)
+            await ctx.RespondAsync( _embedService.Message( "Interactive C# Mode, 'stop' to end session.", DiscordColor.Green ) );
+
+            var interactivity = ctx.Client.GetInteractivity();
+            var result = await interactivity.WaitForMessageAsync( msg => msg.Author.Id == ctx.User.Id && msg.Channel.Id == ctx.Channel.Id, TimeSpan.FromMinutes( 10 ) );
+
+            while (!result.TimedOut && result.Result.Content.ToLower() != "stop")
             {
-                await ctx.RespondAsync("Invalid channel specified.");
+                await EvaluateCode( ctx, result.Result.Content );
             }
 
-            await chnl.ConnectAsync();
+            await ctx.RespondAsync( _embedService.Message( "Interative C# session finished.", DiscordColor.Green ) );
         }
     }
 }

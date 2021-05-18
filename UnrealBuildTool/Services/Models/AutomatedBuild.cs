@@ -191,12 +191,7 @@ namespace UnrealBuildTool.Build
                 var stage = _stages[_currentStage];
                 OnConsoleOutput($"UBT: Starting stage '{stage.GetName()}'");
 
-                stage.LogStream = new MemoryStream();
-                stage.LogWriter = new StreamWriter(stage.LogStream, Encoding.UTF8)
-                {
-                    AutoFlush = true,
-                };
-                
+                stage.LogBuilder = new StringBuilder();
                 stage.OnConsoleOut += OnConsoleOutput;
                 stage.OnConsoleError += OnConsoleError;
 
@@ -241,13 +236,10 @@ namespace UnrealBuildTool.Build
                         stage.OnConsoleError -= OnConsoleError;
 
                         // Check if it wrote anything to the log stream, send the result to Discord if it did.
-                        if (stage.LogStream.Length != 0)
+                        if (stage.LogBuilder.Length != 0)
                         {
-                            await _buildService.SendStageLogAsync(stage.GetName(), stage.LogStream);
+                            await _buildService.SendStageLogAsync(stage.GetName(), stage.LogBuilder);
                         }
-
-                        stage.LogWriter?.Dispose();
-                        stage.LogStream?.Dispose();
 
                         // Oh no, it failed, so we'll kill everything.
                         if (stage.StageResult == StageResult.Failed)
@@ -275,13 +267,10 @@ namespace UnrealBuildTool.Build
                 stage.OnConsoleError -= OnConsoleError;
 
                 // Check if it wrote anything to the log stream, send the result to Discord if it did.
-                if (stage.LogStream.Length != 0)
+                if (stage.LogBuilder.Length != 0)
                 {
-                    await _buildService.SendStageLogAsync(stage.GetName(), stage.LogStream);
+                    await _buildService.SendStageLogAsync(stage.GetName(), stage.LogBuilder);
                 }
-
-                stage.LogWriter?.Dispose();
-                stage.LogStream?.Dispose();
 
                 if (stage.StageResult == StageResult.Running || stage.StageResult == StageResult.Scheduled)
                 {

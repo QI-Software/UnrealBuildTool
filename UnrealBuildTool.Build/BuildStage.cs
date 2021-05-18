@@ -44,12 +44,10 @@ namespace UnrealBuildTool.Build
         /// </summary>
         public Action<string> OnConsoleError;
 
-        public MemoryStream LogStream;
-
         /// <summary>
-        /// Created when a stage starts, if non-empty, the build service will send a file to the Discord output channel when the stage ends.
+        /// Anything added to this string builder will be sent as a file at the end of the build stage.
         /// </summary>
-        public StreamWriter LogWriter;
+        public StringBuilder LogBuilder;
 
         /// <summary>
         /// The required configuration arguments for this stage. The default values will be displayed on templates.

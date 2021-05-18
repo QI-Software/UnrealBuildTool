@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
@@ -302,7 +303,7 @@ namespace UnrealBuildTool.Services
             }
         }
 
-        public async Task SendStageLogAsync(string stageName, Stream log)
+        public async Task SendStageLogAsync(string stageName, StringBuilder log)
         {
             await _buildNotifier.SendStageLogAsync(stageName, log);
         }

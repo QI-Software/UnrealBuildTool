@@ -186,16 +186,25 @@ namespace UnrealBuildTool.Services
             await _client.UpdateStatusAsync(new DiscordActivity("Ready to build!", ActivityType.Playing),
                 UserStatus.Online);
         }
-        public async Task SendStageLogAsync(string stageName, Stream log)
+        public async Task SendStageLogAsync(string stageName, StringBuilder log)
         {
             if (_buildOutputChannel == null)
             {
                 return;
             }
 
+            using MemoryStream memoryStream = new MemoryStream();
+            using StreamWriter writer = new StreamWriter(memoryStream, Encoding.UTF8);
+            foreach (var chunk in log.GetChunks())
+            {
+                await writer.WriteAsync(chunk);
+            }
+
+            await writer.FlushAsync();
+
             var msg = new DiscordMessageBuilder()
                 .WithContent($"Output Log for Stage '{stageName}'")
-                .WithFile("output.log", log);
+                .WithFile("output.log", writer.BaseStream);
 
             await msg.SendAsync(_buildOutputChannel);
         }

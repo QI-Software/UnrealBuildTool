@@ -111,13 +111,12 @@ namespace UnrealBuildTool.Build.Stages
             process.OutputDataReceived += (sender, args) =>
             {
                 OnConsoleOut(args.Data);
-                LogWriter.Write(args.Data);
+                LogBuilder.AppendLine(args.Data);
             };
 
             process.ErrorDataReceived += (sender, args) =>
             {
-                Console.WriteLine(args.Data);
-                LogWriter.Write(args.Data);
+                LogBuilder.AppendLine(args.Data);
                 OnConsoleError(args.Data);
             };
 

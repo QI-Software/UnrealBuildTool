@@ -235,6 +235,7 @@ namespace UnrealBuildTool.Build
 
                         stage.OnConsoleOut -= OnConsoleOutput;
                         stage.OnConsoleError -= OnConsoleError;
+                        await stage.LogWriter?.FlushAsync();
 
                         // Check if it wrote anything to the log stream, send the result to Discord if it did.
                         if (stage.LogStream.Length != 0)
@@ -269,6 +270,7 @@ namespace UnrealBuildTool.Build
 
                 stage.OnConsoleOut -= OnConsoleOutput;
                 stage.OnConsoleError -= OnConsoleError;
+                await stage.LogWriter?.FlushAsync();
 
                 // Check if it wrote anything to the log stream, send the result to Discord if it did.
                 if (stage.LogStream.Length != 0)

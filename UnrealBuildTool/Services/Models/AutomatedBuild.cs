@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -15,7 +17,7 @@ namespace UnrealBuildTool.Build
         private readonly DiscordUser _instigator;
 
         private List<BuildStage> _stages = new List<BuildStage>();
-        
+
         private int _currentStage = 0;
         private DateTimeOffset _buildStartTime;
         private bool _isCompleted = false;
@@ -31,31 +33,31 @@ namespace UnrealBuildTool.Build
         /// Raised when the current build stage changes.
         /// </summary>
         public Action OnStagedChanged { get; set; }
-        
+
         /// <summary>
         /// Raised when the current build completed successfully.
         /// </summary>
         public Action OnCompleted { get; set; }
-        
+
         /// <summary>
         /// Raised when the current build failed.
         /// </summary>
         public Action<BuildStage> OnFailed { get; set; }
-        
+
         /// <summary>
         /// Raised when the current build is cancelled.
         /// </summary>
         public Action OnCancelled { get; set; }
-        
+
         /// <summary>
         /// Raised when the current build sends new console output.
         /// </summary>
         public Action<string> OnConsoleOutput { get; set; }
-        
+
         /// <summary>
         /// Raised when the current build sends new console errors.
         /// </summary>
-        public Action<string> OnConsoleError { get; set;  }
+        public Action<string> OnConsoleError { get; set; }
 
         public AutomatedBuild(BuildService svc, BuildConfiguration configuration, DiscordUser instigator)
         {
@@ -68,7 +70,7 @@ namespace UnrealBuildTool.Build
             _buildConfig = configuration;
             _instigator = instigator;
         }
-        
+
         public bool IsStarted()
         {
             return _buildTask != null;
@@ -117,7 +119,7 @@ namespace UnrealBuildTool.Build
                 ErrorMessage = "Cannot start a build without any build stages.";
                 return false;
             }
-            
+
             // Initialize the required build stages.
             foreach (var stage in _buildConfig.Stages)
             {
@@ -133,7 +135,7 @@ namespace UnrealBuildTool.Build
                     ErrorMessage = $"Failed to instantiate stage '{stage}'.";
                     return false;
                 }
-                
+
                 instancedStage.GenerateDefaultStageConfiguration();
                 instancedStage.SetStageConfiguration(stage.Configuration);
                 if (!instancedStage.IsStageConfigurationValid(out ErrorMessage))
@@ -189,6 +191,8 @@ namespace UnrealBuildTool.Build
                 var stage = _stages[_currentStage];
                 OnConsoleOutput($"UBT: Starting stage '{stage.GetName()}'");
 
+                stage.LogStream = new MemoryStream();
+                stage.LogWriter = new StreamWriter(stage.LogStream);
                 stage.OnConsoleOut += OnConsoleOutput;
                 stage.OnConsoleError += OnConsoleError;
 
@@ -197,23 +201,23 @@ namespace UnrealBuildTool.Build
                     .Where(s => s.RunInBackground())
                     .Where(s => s.StageResult == StageResult.Running)
                     .ToList();
-                
+
                 var forbiddenStages = stage.GetIncompatibleBackgroundStages(runningBackgroundStages);
-                
+
                 if (forbiddenStages.Any())
                 {
                     OnConsoleOutput(
                         $"UBT: Stage '{stage.GetName()}' cannot run with some background stages. Waiting for background stages to end.");
                     var tasks = forbiddenStages
+                        .Where(b => b.BackgroundTask != null)
                         .Select(s => s.BackgroundTask)
-                        .Where(t => t != null)
                         .ToArray();
 
                     Task.WaitAll(tasks);
                 }
-                
+
                 stage.StageResult = StageResult.Running;
-                
+
                 // Run it in the background if it wants to.
                 if (stage.RunInBackground())
                 {
@@ -229,6 +233,18 @@ namespace UnrealBuildTool.Build
                             stage.FailureReason = "An exception has occured during background execution: " + e.Message;
                         }
 
+                        stage.OnConsoleOut -= OnConsoleOutput;
+                        stage.OnConsoleError -= OnConsoleError;
+
+                        // Check if it wrote anything to the log stream, send the result to Discord if it did.
+                        if (stage.LogStream.Length != 0)
+                        {
+                            await _buildService.SendStageLogAsync(stage.GetName(), stage.LogStream);
+                        }
+
+                        stage.LogWriter?.Dispose();
+                        stage.LogStream?.Dispose();
+
                         // Oh no, it failed, so we'll kill everything.
                         if (stage.StageResult == StageResult.Failed)
                         {
@@ -240,7 +256,7 @@ namespace UnrealBuildTool.Build
                     _currentStage++;
                     continue;
                 }
-                
+
                 try
                 {
                     stage.StageResult = await stage.DoTaskAsync();
@@ -254,33 +270,42 @@ namespace UnrealBuildTool.Build
                 stage.OnConsoleOut -= OnConsoleOutput;
                 stage.OnConsoleError -= OnConsoleError;
 
+                // Check if it wrote anything to the log stream, send the result to Discord if it did.
+                if (stage.LogStream.Length != 0)
+                {
+                    await _buildService.SendStageLogAsync(stage.GetName(), stage.LogStream);
+                }
+
+                stage.LogWriter?.Dispose();
+                stage.LogStream?.Dispose();
+
                 if (stage.StageResult == StageResult.Running || stage.StageResult == StageResult.Scheduled)
                 {
                     stage.FailureReason = "Stage returned 'Running' or 'Scheduled' stage result, and was failed for it.";
                     stage.StageResult = StageResult.Failed;
                 }
-                
+
                 if (_cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
-                
+
                 if (stage.StageResult == StageResult.Failed)
                 {
                     _isFailed = true;
                     OnFailed(stage);
-                    
+
                     // Cancel any ongoing background stages
                     var ongoing = _stages
                         .Where(s => s.BackgroundTask != null)
                         .Where(s => s.StageResult == StageResult.Running)
                         .ToList();
-                        
+
                     ongoing.ForEach(async s => await s.OnCancellationRequestedAsync());
                     await Task.WhenAll(ongoing.Select(s => s.BackgroundTask).ToArray());
                     return;
                 }
-                
+
                 _currentStage++;
             }
 
@@ -289,7 +314,7 @@ namespace UnrealBuildTool.Build
                 _isCancelled = true;
                 OnCancelled();
             }
-            
+
             // Wait for all background tasks to finish.
             var backgroundStages = _stages.Where(s => s.RunInBackground() && s.BackgroundTask != null).ToList();
             await Task.WhenAll(backgroundStages.Select(s => s.BackgroundTask).ToArray());
@@ -305,7 +330,7 @@ namespace UnrealBuildTool.Build
                 OnFailed(null);
                 return;
             }
-            
+
             if (_currentStage == _stages.Count)
             {
                 _isCompleted = true;

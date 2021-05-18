@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -31,7 +33,6 @@ namespace UnrealBuildTool.Build
         /// The reason the stage failed if it did.
         /// </summary>
         public string FailureReason { get; set; }
-
         
         /// <summary>
         /// Raised when this build stage receives new console output.
@@ -42,6 +43,13 @@ namespace UnrealBuildTool.Build
         /// Raised when this build stage receives a new console error.
         /// </summary>
         public Action<string> OnConsoleError;
+
+        public MemoryStream LogStream;
+
+        /// <summary>
+        /// Created when a stage starts, if non-empty, the build service will send a file to the Discord output channel when the stage ends.
+        /// </summary>
+        public StreamWriter LogWriter;
 
         /// <summary>
         /// The required configuration arguments for this stage. The default values will be displayed on templates.

@@ -348,7 +348,7 @@ namespace UnrealBuildTool.Commands
                 await ctx.RespondAsync(_embed.Message("File must be a valid .json file.", DiscordColor.Red));
                 return;
             }
-
+            
             var response = await _httpClient.GetAsync(file.Url);
             if (!response.IsSuccessStatusCode)
             {
@@ -358,6 +358,7 @@ namespace UnrealBuildTool.Commands
             }
 
             var json = await response.Content.ReadAsStringAsync();
+            
             try
             {
                 var buildConfig = JsonConvert.DeserializeObject<BuildConfiguration>(json);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -184,6 +185,19 @@ namespace UnrealBuildTool.Services
             
             await _client.UpdateStatusAsync(new DiscordActivity("Ready to build!", ActivityType.Playing),
                 UserStatus.Online);
+        }
+        public async Task SendStageLogAsync(string stageName, Stream log)
+        {
+            if (_buildOutputChannel == null)
+            {
+                return;
+            }
+
+            var msg = new DiscordMessageBuilder()
+                .WithContent($"Output Log for Stage '{stageName}'")
+                .WithFile("output.log", log);
+
+            await msg.SendAsync(_buildOutputChannel);
         }
     }
 }

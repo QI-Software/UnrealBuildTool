@@ -71,8 +71,8 @@ namespace UnrealBuildTool.Services
 
             foreach (var stageType in reflectedStages)
             {
-                var stage = (BuildStage) Activator.CreateInstance(stageType);
-                
+                var stage = (BuildStage)Activator.CreateInstance(stageType);
+
                 if (stage != null)
                 {
                     var name = stage.GetName();
@@ -102,9 +102,9 @@ namespace UnrealBuildTool.Services
             {
                 Directory.CreateDirectory("config/");
             }
-            
+
             var templates = new List<BuildStageTemplate>();
-            
+
             foreach (var stageName in _buildStages.Keys)
             {
                 var stage = InstantiateStage(stageName);
@@ -132,14 +132,14 @@ namespace UnrealBuildTool.Services
             {
                 throw new InvalidOperationException($"Cannot instantiate invalid stage name '{stageName ?? "null"}'");
             }
-            
+
             if (!StageExists(stageName))
             {
                 throw new InvalidOperationException(
                     $"Could not find any stage with name '{stageName}' to instantiate.");
             }
 
-            return (BuildStage) Activator.CreateInstance(_buildStages[stageName]);
+            return (BuildStage)Activator.CreateInstance(_buildStages[stageName]);
         }
 
         public async Task LoadBuildConfigurationsAsync()
@@ -165,7 +165,7 @@ namespace UnrealBuildTool.Services
                 var filename = Path.GetFileName(file);
                 var json = await File.ReadAllTextAsync(file);
                 BuildConfiguration config = null;
-                
+
                 try
                 {
                     config = JsonConvert.DeserializeObject<BuildConfiguration>(json);
@@ -208,13 +208,13 @@ namespace UnrealBuildTool.Services
 
                 var projectFilePath = $"{config.ProjectDirectory}/{config.ProjectFile}";
                 projectFilePath = projectFilePath.Replace("//", "/");
-                
+
                 if (!File.Exists(projectFilePath))
                 {
                     _log.Warning(LogCategory + $"Build configuration '{config.Name}' has no .uproject file at set location, ignoring.");
                     continue;
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(config.SolutionFile))
                 {
                     _log.Warning(LogCategory + $"Build configuration '{config.Name}' has null or empty solution file, ignoring.");
@@ -245,7 +245,7 @@ namespace UnrealBuildTool.Services
                     _log.Warning(LogCategory + $"Build configuration '{config.Name}' contains an unknown build stage '{unknownStage}', ignoring.");
                     continue;
                 }
-                
+
                 _log.Information(LogCategory + $"Loaded build configuration '{config.Name}'.");
                 config.SourceFile = filename;
                 _buildConfigurations.Add(config);
@@ -285,11 +285,11 @@ namespace UnrealBuildTool.Services
             _currentBuild.OnCompleted += OnBuildCompleted;
             _currentBuild.OnFailed += OnBuildFailed;
             _currentBuild.OnCancelled += OnBuildCancelled;
-            
+
             // Create the build status and output log messages on Discord.
             var task = _buildNotifier.InitializeBuildNotifications(_currentBuild);
             task.Wait();
-            
+
             _currentBuild.StartBuild();
             return true;
         }
@@ -300,6 +300,11 @@ namespace UnrealBuildTool.Services
             {
                 await _currentBuild.CancelBuildAsync();
             }
+        }
+
+        public async Task SendStageLogAsync(string stageName, Stream log)
+        {
+            await _buildNotifier.SendStageLogAsync(stageName, log);
         }
 
         private void OnBuildFailed(BuildStage failedStage)

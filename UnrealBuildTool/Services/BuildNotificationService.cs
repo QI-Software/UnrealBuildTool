@@ -201,7 +201,8 @@ namespace UnrealBuildTool.Services
             }
 
             await writer.FlushAsync();
-
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            
             var msg = new DiscordMessageBuilder()
                 .WithContent($"Output Log for Stage '{stageName}'")
                 .WithFile("output.log", writer.BaseStream);

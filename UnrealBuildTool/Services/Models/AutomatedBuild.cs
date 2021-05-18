@@ -192,7 +192,11 @@ namespace UnrealBuildTool.Build
                 OnConsoleOutput($"UBT: Starting stage '{stage.GetName()}'");
 
                 stage.LogStream = new MemoryStream();
-                stage.LogWriter = new StreamWriter(stage.LogStream);
+                stage.LogWriter = new StreamWriter(stage.LogStream, Encoding.UTF8)
+                {
+                    AutoFlush = true,
+                };
+                
                 stage.OnConsoleOut += OnConsoleOutput;
                 stage.OnConsoleError += OnConsoleError;
 
@@ -235,7 +239,6 @@ namespace UnrealBuildTool.Build
 
                         stage.OnConsoleOut -= OnConsoleOutput;
                         stage.OnConsoleError -= OnConsoleError;
-                        await stage.LogWriter?.FlushAsync();
 
                         // Check if it wrote anything to the log stream, send the result to Discord if it did.
                         if (stage.LogStream.Length != 0)
@@ -270,7 +273,6 @@ namespace UnrealBuildTool.Build
 
                 stage.OnConsoleOut -= OnConsoleOutput;
                 stage.OnConsoleError -= OnConsoleError;
-                await stage.LogWriter?.FlushAsync();
 
                 // Check if it wrote anything to the log stream, send the result to Discord if it did.
                 if (stage.LogStream.Length != 0)

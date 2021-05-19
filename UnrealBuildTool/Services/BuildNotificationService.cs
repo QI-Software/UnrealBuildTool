@@ -194,7 +194,7 @@ namespace UnrealBuildTool.Services
             }
 
             using MemoryStream memoryStream = new MemoryStream();
-            using StreamWriter writer = new StreamWriter(memoryStream, Encoding.UTF8);
+            using StreamWriter writer = new StreamWriter(memoryStream, new UTF8Encoding(false));
             foreach (var chunk in log.GetChunks())
             {
                 await writer.WriteAsync(chunk);

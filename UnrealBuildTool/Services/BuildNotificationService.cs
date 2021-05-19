@@ -204,8 +204,8 @@ namespace UnrealBuildTool.Services
             memoryStream.Seek(0, SeekOrigin.Begin);
             
             var msg = new DiscordMessageBuilder()
-                .WithContent($"Output Log for Stage '{stageName}'")
-                .WithFile("output.log", writer.BaseStream);
+                .WithEmbed(_embed.Message($"Output Log for Stage '{stageName}'", DiscordColor.Green))
+                .WithFile("output.txt", writer.BaseStream);
 
             await msg.SendAsync(_buildOutputChannel);
         }

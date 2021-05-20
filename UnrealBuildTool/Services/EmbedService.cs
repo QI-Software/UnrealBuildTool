@@ -109,7 +109,7 @@ namespace UnrealBuildTool.Services
 
             if (build.IsCompleted())
             {
-                embed.WithDescription("Build completed successfully!")
+                embed.WithDescription($"Build completed successfully! Duration: {(DateTimeOffset.Now - build.GetStartTime()):c}")
                     .WithColor(DiscordColor.Green)
                     .WithTimestamp(build.GetStartTime());
             }

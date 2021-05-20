@@ -105,6 +105,11 @@ namespace UnrealBuildTool.Build.Stages
             _uatProcess.OutputDataReceived += (sender, args) =>
             {
                 OnConsoleOut(args.Data);
+                if (args.Data == null)
+                {
+                    return;
+                }
+                
                 var trimmed = args.Data.Trim();
                 if (trimmed.Contains("Warning/Error Summary"))
                 {

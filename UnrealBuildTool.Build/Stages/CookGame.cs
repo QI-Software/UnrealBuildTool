@@ -8,6 +8,8 @@ namespace UnrealBuildTool.Build.Stages
     public class CookGame : BuildStage
     {
         private Process _uatProcess;
+        private bool _isCookSummary = false;
+
         public override string GetName() => "CookGame";
 
         public override string GetDescription()
@@ -100,7 +102,24 @@ namespace UnrealBuildTool.Build.Stages
             
             OnConsoleOut($"UBT: Running AutomationTool for cook stage with arguments '{_uatProcess.StartInfo.Arguments}'");
             
-            _uatProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+            _uatProcess.OutputDataReceived += (sender, args) =>
+            {
+                OnConsoleOut(args.Data);
+                var trimmed = args.Data.Trim();
+                if (trimmed.Contains("Warning/Error Summary"))
+                {
+                    _isCookSummary = true;
+                }
+                else if (trimmed.Contains("COOK COMMAND COMPLETED"))
+                {
+                    _isCookSummary = false;
+                }
+
+                if (_isCookSummary)
+                {
+                    LogBuilder.AppendLine(args.Data);
+                }
+            };
             _uatProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
             _uatProcess.Start();
             _uatProcess.BeginOutputReadLine();

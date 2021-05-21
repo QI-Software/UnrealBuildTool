@@ -128,6 +128,21 @@ namespace UnrealBuildTool.Services
 
         public bool HasAccount(string name) => _steamAccounts.Any(u => u.Username.Equals(name ?? "", StringComparison.CurrentCultureIgnoreCase));
 
+        public bool GetCodeForAccount(string username, out string code, out string errorMessage)
+        {
+            code = null;
+            errorMessage = null;
+            var user = _steamAccounts.FirstOrDefault(u => u.Username.Equals(username?.Trim() ?? "", StringComparison.CurrentCultureIgnoreCase));
+            if (user == null)
+            {
+                errorMessage = $"Could not find any account named '{username}'";
+                return false;
+            }
+
+            code = user.SteamGuard.GenerateSteamGuardCode();
+            return true;
+        }
+
         private void SaveSteamAccounts()
         {
             if (!Directory.Exists("steam"))

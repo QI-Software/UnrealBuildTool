@@ -94,6 +94,19 @@ namespace UnrealBuildTool.Commands
             }
         }
 
+        [Command("getcode")]
+        public async Task GetUserCode(CommandContext ctx, string username)
+        {
+            if (_steamAuth.GetCodeForAccount(username, out var code, out var error))
+            {
+                await ctx.RespondAsync(_embedService.Message($"Generated new code for `{username}`: {code}", DiscordColor.Green));
+            }
+            else
+            {
+                await ctx.RespondAsync(_embedService.Message($"Couldn't generate a code: {error}", DiscordColor.Red));
+            }
+        }
+
         private async Task<InteractivityResult<DiscordMessage>> WaitForDMAsync(InteractivityExtension interactivity, DiscordMember member, TimeSpan timeout)
         {
             return await interactivity.WaitForMessageAsync(m => m.Author.Id == member.Id, timeout);

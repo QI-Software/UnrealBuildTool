@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Serilog.Core;
 using SteamAuth;
@@ -41,18 +42,16 @@ namespace UnrealBuildTool.Services
             }
         }
 
-        public bool AddSteamworksUser(string username, string password, Func<string> onTwoFactorRequired, out SteamworksUser newUser, out string errorReason)
+        public async Task<SteamworksAddUserResult> AddSteamworksUserAsync(string username, string password, Func<Task<string>> onTwoFactorRequired)
         {
-            errorReason = null;
-            newUser = null;
             username = username?.Trim();
             password = password?.Trim();
-            
+
             if (string.IsNullOrWhiteSpace(username))
             {
                 throw new ArgumentException("Username cannot be null or whitespace.");
             }
-            
+
             if (string.IsNullOrWhiteSpace(password))
             {
                 throw new ArgumentException("Password cannot be null or whitespace.");
@@ -61,8 +60,7 @@ namespace UnrealBuildTool.Services
             var existing = _steamAccounts.FirstOrDefault(u => u.Username.Equals(username, StringComparison.CurrentCultureIgnoreCase));
             if (existing != null)
             {
-                newUser = existing;
-                return true;
+                return SteamworksAddUserResult.FromSuccess(existing);
             }
 
             var login = new UserLogin(username, password);
@@ -77,17 +75,13 @@ namespace UnrealBuildTool.Services
                     switch (authResult)
                     {
                         case AuthenticatorLinker.LinkResult.MustProvidePhoneNumber:
-                            errorReason = "Steam account is missing a phone number";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("Steam account is missing a phone number");
                         case AuthenticatorLinker.LinkResult.MustRemovePhoneNumber:
-                            errorReason = "Steam account mustn't have a phone number.";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("Steam account mustn't have a phone number.");
                         case AuthenticatorLinker.LinkResult.GeneralFailure:
-                            errorReason = "An unknown error has occured while adding an authenticator.";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("An unknown error has occured while adding an authenticator.");
                         case AuthenticatorLinker.LinkResult.AuthenticatorPresent:
-                            errorReason = "This account already has an authenticator, please remove it.";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("This account already has an authenticator, please remove it.");
                     }
                     var user = new SteamworksUser
                     {
@@ -95,60 +89,52 @@ namespace UnrealBuildTool.Services
                         Password = password,
                         SteamGuard = auth.LinkedAccount
                     };
-                    
+
                     _steamAccounts.Add(user);
-                    var code = onTwoFactorRequired?.Invoke();
+                    var code = await (onTwoFactorRequired?.Invoke() ?? Task.FromResult(""));
                     var finalizeResult = auth.FinalizeAddAuthenticator(code);
                     switch (finalizeResult)
                     {
                         case AuthenticatorLinker.FinalizeResult.BadSMSCode:
-                            errorReason = "A bad SMS code was given for the authenticator.";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("A bad SMS code was given for the authenticator.");
                         case AuthenticatorLinker.FinalizeResult.UnableToGenerateCorrectCodes:
-                            errorReason = "Unable to generate correct codes.";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("Unable to generate correct codes.");
                         case AuthenticatorLinker.FinalizeResult.GeneralFailure:
-                            errorReason = "An unknown error has occured while finalizing an authenticator.";
-                            return false;
+                            return SteamworksAddUserResult.FromFailure("An unknown error has occured while finalizing an authenticator.");
                     }
-                    
+
                     SaveSteamAccounts();
-                    newUser = user;
-                    return true;
+                    return SteamworksAddUserResult.FromSuccess(user);
                 case LoginResult.GeneralFailure:
-                    errorReason = "Failed to login: unknown error.";
-                    return false;
+                    return SteamworksAddUserResult.FromFailure("Failed to login: unknown error.");
                 case LoginResult.BadRSA:
-                    errorReason = "Failed to login: bad RSA";
-                    return false;
+                    return SteamworksAddUserResult.FromFailure("Failed to login: bad RSA");
                 case LoginResult.BadCredentials:
-                    errorReason = "Wrong credentials entered, please try again.";
-                    return false;
+                    return SteamworksAddUserResult.FromFailure("Wrong credentials entered, please try again.");
                 case LoginResult.NeedCaptcha:
-                    errorReason = "Steam requested a captcha to be completed, this cannot be handled.";
-                    return false;
+                    return SteamworksAddUserResult.FromFailure("Steam requested a captcha to be completed, this cannot be handled.");
                 case LoginResult.Need2FA:
-                    login.TwoFactorCode = onTwoFactorRequired?.Invoke();
+                    login.TwoFactorCode = await (onTwoFactorRequired?.Invoke() ?? Task.FromResult(""));
                     goto Retry;
                 case LoginResult.NeedEmail:
-                    login.EmailCode = onTwoFactorRequired?.Invoke();
+                    login.EmailCode = await (onTwoFactorRequired?.Invoke() ?? Task.FromResult(""));
                     goto Retry;
                 case LoginResult.TooManyFailedLogins:
-                    errorReason = "Too many login attempts have been made, please try again later.";
-                    return false;
+                    return SteamworksAddUserResult.FromFailure("Too many login attempts have been made, please try again later.");
             }
 
-            errorReason = "An unhandled error happened. Please try again";
-            return false;
+            return SteamworksAddUserResult.FromFailure("An unhandled error happened. Please try again");
         }
-        
+
+        public bool HasAccount(string name) => _steamAccounts.Any(u => u.Username.Equals(name ?? "", StringComparison.CurrentCultureIgnoreCase));
+
         private void SaveSteamAccounts()
         {
             if (!Directory.Exists("steam"))
             {
                 Directory.CreateDirectory("steam");
             }
-            
+
             if (_steamAccounts != null)
             {
                 var json = JsonConvert.SerializeObject(_steamAccounts, Formatting.Indented);

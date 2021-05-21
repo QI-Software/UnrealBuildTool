@@ -16,6 +16,11 @@ namespace UnrealBuildTool.Preconditions
         {
             var config = ctx.Services.GetRequiredService<ConfigurationService>();
             var embed = ctx.Services.GetRequiredService<EmbedService>();
+            if (ctx.Channel.IsPrivate)
+            {
+                await ctx.RespondAsync(embed.Message("Error: you cannot run commands outside of a server.", DiscordColor.Red));
+                return false;
+            }
             
             if (!ctx.Guild.Roles.ContainsKey(config.Discord.BuildRoleId ?? 0))
             {

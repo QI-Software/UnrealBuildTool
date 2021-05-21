@@ -118,7 +118,8 @@ namespace UnrealBuildTool
                 .AddSingleton<EmbedService>()
                 .AddSingleton<BuildNotificationService>()
                 .AddSingleton<BuildService>()
-                .AddSingleton<BuildScheduleService>();
+                .AddSingleton<BuildScheduleService>()
+                .AddSingleton<SteamAuthService>();
 
             return services.BuildServiceProvider();
         }
@@ -133,6 +134,8 @@ namespace UnrealBuildTool
 
             // This is done last, since the embed service is likely required by others first, and it may require others itself.
             _services.GetRequiredService<EmbedService>().InjectServices(_services);
+            
+            _services.GetRequiredService<SteamAuthService>().Initialize();
         }
     }
 }

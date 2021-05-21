@@ -144,6 +144,11 @@ namespace UnrealBuildTool.Services
         
         private void SaveSteamAccounts()
         {
+            if (!Directory.Exists("steam"))
+            {
+                Directory.CreateDirectory("steam");
+            }
+            
             if (_steamAccounts != null)
             {
                 var json = JsonConvert.SerializeObject(_steamAccounts, Formatting.Indented);

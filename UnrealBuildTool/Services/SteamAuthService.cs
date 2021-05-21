@@ -22,7 +22,7 @@ namespace UnrealBuildTool.Services
 
         public void Initialize()
         {
-            if (!File.Exists("steam/accounts.json"))
+            if (!File.Exists("config/steam/accounts.json"))
             {
                 _steamAccounts = new List<SteamworksUser>();
                 SaveSteamAccounts();
@@ -31,7 +31,7 @@ namespace UnrealBuildTool.Services
             {
                 try
                 {
-                    var json = File.ReadAllText("steam/accounts.json");
+                    var json = File.ReadAllText("config/steam/accounts.json");
                     _steamAccounts = JsonConvert.DeserializeObject<List<SteamworksUser>>(json);
                 }
                 catch (Exception e)
@@ -138,7 +138,7 @@ namespace UnrealBuildTool.Services
             if (_steamAccounts != null)
             {
                 var json = JsonConvert.SerializeObject(_steamAccounts, Formatting.Indented);
-                File.WriteAllText("steam/accounts.json", json);
+                File.WriteAllText("config/steam/accounts.json", json);
             }
         }
     }

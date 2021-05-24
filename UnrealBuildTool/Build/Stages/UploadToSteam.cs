@@ -154,7 +154,9 @@ namespace UnrealBuildTool.Build.Stages
 
                 FailureReason = null;
                 _steamcmdProcess.Start();
-
+                _steamcmdProcess.BeginErrorReadLine();
+                _steamcmdProcess.BeginOutputReadLine();
+                
                 _ = ConsumeReader(_steamcmdProcess.StandardOutput);
                 _ = ConsumeError(_steamcmdProcess.StandardError);
                 _ = WaitForSteamAuth(_steamcmdProcess);
@@ -223,26 +225,27 @@ namespace UnrealBuildTool.Build.Stages
 
             while ((await reader.ReadAsync(buffer, 0, 1)) > 0)
             {
-                if (buffer[0].Equals('\n') )
-                {
-                    OnConsoleOut(_currentOutput);
-                    _currentOutput = "";
-                    continue;
-                }
-                
-                _currentOutput += buffer[0];
-                if (_currentOutput.Contains("Two-factor code:"))
-                {
-                    OnConsoleOut(_currentOutput);
-                    _currentOutput = "";
-                    _waitingForCode = true;
-                }
-                
-                if (_currentOutput.Length >= 128)
-                {
-                    OnConsoleOut(_currentOutput);
-                    _currentOutput = "";
-                }
+                Console.Write(buffer[0]);
+                // if (buffer[0].Equals('\n') )
+                // {
+                //     OnConsoleOut(_currentOutput);
+                //     _currentOutput = "";
+                //     continue;
+                // }
+                //
+                // _currentOutput += buffer[0];
+                // if (_currentOutput.Contains("Two-factor code:"))
+                // {
+                //     OnConsoleOut(_currentOutput);
+                //     _currentOutput = "";
+                //     _waitingForCode = true;
+                // }
+                //
+                // if (_currentOutput.Length >= 128)
+                // {
+                //     OnConsoleOut(_currentOutput);
+                //     _currentOutput = "";
+                // }
             }
         }
 

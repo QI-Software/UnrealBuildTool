@@ -18,9 +18,4 @@
       <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0-dev-00839" />
       <PackageReference Include="SteamAuth" Version="3.0.0" />
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\UnrealBuildTool.Build\UnrealBuildTool.Build.csproj" />
-    </ItemGroup>
-
 </Project>

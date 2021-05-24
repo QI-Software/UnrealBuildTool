@@ -154,9 +154,7 @@ namespace UnrealBuildTool.Build.Stages
 
                 FailureReason = null;
                 _steamcmdProcess.Start();
-                _steamcmdProcess.BeginErrorReadLine();
-                _steamcmdProcess.BeginOutputReadLine();
-                
+
                 _ = ConsumeReader(_steamcmdProcess.StandardOutput);
                 _ = ConsumeError(_steamcmdProcess.StandardError);
                 _ = WaitForSteamAuth(_steamcmdProcess);

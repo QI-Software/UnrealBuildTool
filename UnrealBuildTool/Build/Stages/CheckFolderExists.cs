@@ -49,6 +49,7 @@ namespace UnrealBuildTool.Build.Stages
                 return Task.FromResult(StageResult.Successful);
             }
 
+            FailureReason = $"Could not find folder at '{path}'";
             return Task.FromResult(StageResult.Failed);
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
@@ -24,7 +25,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("RunGitLFSPrune", true);
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("RunGitClean", out bool bRunGitClean);
             TryGetConfigValue("RunGitResetHard", out bool bRunGitReset);

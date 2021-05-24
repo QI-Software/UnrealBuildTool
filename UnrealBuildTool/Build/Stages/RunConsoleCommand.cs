@@ -23,7 +23,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("Description", "Run console command.");
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("Command", out string cmd);
             OnConsoleOut("UBT: Running command: " + cmd);

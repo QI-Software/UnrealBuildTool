@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
@@ -38,7 +39,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("FolderPath", "");
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("FolderPath", out string path);
             path = path.Replace(@"\", "/").Replace("//", "/").TrimEnd('/');

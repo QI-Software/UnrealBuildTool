@@ -34,7 +34,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("Destination",  "");
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("Target", out string target);
             TryGetConfigValue("Destination", out string destination);

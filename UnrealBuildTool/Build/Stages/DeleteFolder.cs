@@ -39,7 +39,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("IsCritical", false);
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("FolderPath", out string path);
             TryGetConfigValue("IsCritical", out bool critical);

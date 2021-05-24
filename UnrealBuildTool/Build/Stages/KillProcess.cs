@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace UnrealBuildTool.Build.Stages
@@ -38,7 +39,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("KillChildren", true);
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("ProcessName", out string name);
             TryGetConfigValue("KillChildren", out bool killChildren);

@@ -18,6 +18,7 @@ namespace UnrealBuildTool.Services
     {
         public static readonly string LogCategory = "BuildService: ";
 
+        private readonly IServiceProvider _services;
         private readonly BuildNotificationService _buildNotifier;
         private readonly Logger _log;
 
@@ -25,8 +26,9 @@ namespace UnrealBuildTool.Services
         private Dictionary<string, Type> _buildStages = new Dictionary<string, Type>();
         private List<BuildConfiguration> _buildConfigurations = new List<BuildConfiguration>();
 
-        public BuildService(BuildNotificationService notifier, Logger log)
+        public BuildService(IServiceProvider services, BuildNotificationService notifier, Logger log)
         {
+            _services = services;
             _buildNotifier = notifier;
             _log = log;
         }
@@ -273,7 +275,7 @@ namespace UnrealBuildTool.Services
                 return false;
             }
 
-            var newBuild = new AutomatedBuild(this, configuration, user);
+            var newBuild = new AutomatedBuild(_services, configuration, user);
             if (!newBuild.InitializeConfiguration(out ErrorMessage))
             {
                 return false;

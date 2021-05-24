@@ -17,7 +17,7 @@ namespace UnrealBuildTool.Build.Stages
             return "Clean up Binaries and Intermediate folders";
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             var binariesPath = $"{BuildConfig.ProjectDirectory}/Binaries";
             var intermediatePath = $"{BuildConfig.ProjectDirectory}/Intermediate";

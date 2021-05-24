@@ -27,7 +27,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("UseShellExecute", false);
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("File", out string file);
             TryGetConfigValue("Arguments", out string arguments);

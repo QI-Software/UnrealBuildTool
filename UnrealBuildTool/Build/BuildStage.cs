@@ -176,7 +176,8 @@ namespace UnrealBuildTool.Build
         /// <summary>
         /// Called to execute this build stage's task. Return whether or not the task succeeded.
         /// </summary>
-        public abstract Task<StageResult> DoTaskAsync();
+        /// <param name="services"></param>
+        public abstract Task<StageResult> DoTaskAsync(IServiceProvider services);
 
         /// <summary>
         /// Called when the build needs to be cancelled. Release anything ongoing and halt as soon as possible.

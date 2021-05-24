@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("GameTarget", "TargetProject");
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("GameConfiguration", out string gameConfig);
             TryGetConfigValue("GamePlatform", out string gamePlatform);

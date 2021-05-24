@@ -17,7 +17,7 @@ namespace UnrealBuildTool.Build.Stages
 
         public override string GetDescription() => "Verify .uproject and Generate Project Files";
 
-        public override async Task<StageResult> DoTaskAsync()
+        public override async Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             // Make sure our uproject is associated correctly.
             var uprojectPath = BuildConfig.GetProjectFilePath();

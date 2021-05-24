@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using UnrealBuildTool.Services;
 
 namespace UnrealBuildTool.Build
@@ -15,6 +16,7 @@ namespace UnrealBuildTool.Build
         private readonly BuildConfiguration _buildConfig;
         private readonly BuildService _buildService;
         private readonly DiscordUser _instigator;
+        private readonly IServiceProvider _services;
 
         private List<BuildStage> _stages = new List<BuildStage>();
 
@@ -59,15 +61,11 @@ namespace UnrealBuildTool.Build
         /// </summary>
         public Action<string> OnConsoleError { get; set; }
 
-        public AutomatedBuild(BuildService svc, BuildConfiguration configuration, DiscordUser instigator)
+        public AutomatedBuild(IServiceProvider services, BuildConfiguration configuration, DiscordUser instigator)
         {
-            if (configuration == null)
-            {
-                throw new NullReferenceException("Cannot instantiate a Build with a null BuildConfiguration.");
-            }
-
-            _buildService = svc;
-            _buildConfig = configuration;
+            _services = services ?? throw new ArgumentNullException(nameof(services));
+            _buildService = services.GetRequiredService<BuildService>();
+            _buildConfig = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _instigator = instigator;
         }
 
@@ -224,7 +222,7 @@ namespace UnrealBuildTool.Build
                     {
                         try
                         {
-                            stage.StageResult = await stage.DoTaskAsync();
+                            stage.StageResult = await stage.DoTaskAsync(_services);
                         }
                         catch (Exception e)
                         {
@@ -255,7 +253,7 @@ namespace UnrealBuildTool.Build
 
                 try
                 {
-                    stage.StageResult = await stage.DoTaskAsync();
+                    stage.StageResult = await stage.DoTaskAsync(_services);
                 }
                 catch (Exception e)
                 {

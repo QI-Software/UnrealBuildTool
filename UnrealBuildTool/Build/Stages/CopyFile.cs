@@ -41,7 +41,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("IsCritical",true);
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("TargetFile", out string target);
             TryGetConfigValue("DestinationFile", out string destination);

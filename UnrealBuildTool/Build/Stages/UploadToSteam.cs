@@ -4,11 +4,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using UnrealBuildTool.Services;
+using UnrealBuildTool.Services.Models;
 
 namespace UnrealBuildTool.Build.Stages
 {
     public class UploadToSteam : BuildStage
     {
+        private SteamAuthService _steamAuth;
+        private SteamworksUser _user;
         private Process _steamcmdProcess;
         private Task _hangCheck;
         
@@ -75,7 +80,7 @@ namespace UnrealBuildTool.Build.Stages
             return new List<BuildStage>();
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("SteamCMDPath", out string steamcmdPath);
             TryGetConfigValue("Username", out string username);
@@ -83,11 +88,30 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue("AppVDFPath", out string appVDFPath);
             TryGetConfigValue("MaxTries", out int maxTries);
             TryGetConfigValue("IsCritical", out bool isCritical);
+
+            _steamAuth = services.GetRequiredService<SteamAuthService>();
             
             if (!File.Exists(appVDFPath))
             {
                 FailureReason = $"Cannot find App VDF at '{appVDFPath}'.";
                 return Task.FromResult(isCritical ? StageResult.Failed : StageResult.SuccessfulWithWarnings);
+            }
+
+            _steamAuth.TryGetAccount(username, out _user);
+            
+            // We'll use the SteamAuthService to get a user account if a password isn't specified.
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                if (_user == null)
+                {
+                    FailureReason = "You must set a username with an account using the SteamAuthService if you do not set a password.";
+                    LogBuilder.AppendLine("You must set a username with an account using the SteamAuthService if you do not set a password.");
+                    return Task.FromResult(StageResult.Failed);
+                }
+                
+                OnConsoleOut($"UBT: Found user '{_user.Username}' in SteamAuthService.");
+                LogBuilder.AppendLine($"UBT: Found user '{_user.Username}' in SteamAuthService.");
+                password = _user.Password;
             }
 
             var arguments = new[]
@@ -131,6 +155,8 @@ namespace UnrealBuildTool.Build.Stages
                 _steamcmdProcess.Start();
 
                 _ = ConsumeReader(_steamcmdProcess.StandardOutput);
+                _ = WaitForSteamAuth(_steamcmdProcess);
+                
                 _steamcmdProcess.WaitForExit();
 
                 if (IsCancelled)
@@ -207,6 +233,47 @@ namespace UnrealBuildTool.Build.Stages
                 {
                     OnConsoleOut(_currentOutput);
                     _currentOutput = "";
+                }
+            }
+        }
+
+        async Task WaitForSteamAuth(Process steamcmd)
+        {
+            while (!steamcmd.HasExited)
+            {
+                foreach (ProcessThread thread in steamcmd.Threads)
+                {
+                    if (thread.ThreadState == ThreadState.Wait)
+                    {
+                        if (thread.WaitReason == ThreadWaitReason.UserRequest)
+                        {
+                            OnConsoleOut("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
+                            LogBuilder.AppendLine("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
+
+                            if (_user == null)
+                            {
+                                OnConsoleOut("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+                                LogBuilder.AppendLine("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+
+                                await OnCancellationRequestedAsync();
+                                return;
+                            }
+
+                            if (_steamAuth.GetCodeForAccount(_user.Username, out string code, out string error))
+                            {
+                                OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
+                                LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
+                                await steamcmd.StandardInput.WriteLineAsync(code);
+                            }
+                            else
+                            {
+                                OnConsoleOut($"UBT: Failed to retrieve code: {error}.");
+                                LogBuilder.AppendLine($"UBT: Failed to retrieve code: {error}.");
+                                await OnCancellationRequestedAsync();
+                                return;
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -38,7 +39,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("MSBuildPath", "MSBuild.exe");
         }
 
-        public override Task<StageResult> DoTaskAsync()
+        public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
             TryGetConfigValue("GameConfiguration", out string config);
             TryGetConfigValue("GamePlatform", out string platform);

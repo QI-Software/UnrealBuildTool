@@ -128,6 +128,12 @@ namespace UnrealBuildTool.Services
 
         public bool HasAccount(string name) => _steamAccounts.Any(u => u.Username.Equals(name ?? "", StringComparison.CurrentCultureIgnoreCase));
 
+        public bool TryGetAccount(string name, out SteamworksUser user)
+        {
+            user = _steamAccounts.FirstOrDefault(u => u.Username.Equals(name ?? "", StringComparison.CurrentCultureIgnoreCase));
+            return user != null;
+        }
+
         public bool GetCodeForAccount(string username, out string code, out string errorMessage)
         {
             code = null;

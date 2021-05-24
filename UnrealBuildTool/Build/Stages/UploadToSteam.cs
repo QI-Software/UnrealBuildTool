@@ -239,6 +239,7 @@ namespace UnrealBuildTool.Build.Stages
 
         async Task WaitForSteamAuth(Process steamcmd)
         {
+            await Task.Delay(5000);
             while (!steamcmd.HasExited)
             {
                 foreach (ProcessThread thread in steamcmd.Threads)

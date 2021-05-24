@@ -230,13 +230,7 @@ namespace UnrealBuildTool.Build.Stages
                 }
                 
                 _currentOutput += buffer[0];
-                if (_currentOutput.Contains("Two-factor code:"))
-                {
-                    OnConsoleOut(_currentOutput);
-                    _currentOutput = "";
-                    _waitingForCode = true;
-                }
-                
+
                 if (_currentOutput.Length >= 128)
                 {
                     OnConsoleOut(_currentOutput);
@@ -269,7 +263,7 @@ namespace UnrealBuildTool.Build.Stages
                         {
                             OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
                             LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
-                            await steamcmd.StandardInput.WriteLineAsync(code);
+                            steamcmd.StandardInput.WriteLine(code);
                             await Task.Delay(5000);
                             return;
                         }

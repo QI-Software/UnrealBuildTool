@@ -156,6 +156,7 @@ namespace UnrealBuildTool.Build.Stages
                 _steamcmdProcess.Start();
 
                 _ = ConsumeReader(_steamcmdProcess.StandardOutput);
+                _ = ConsumeError(_steamcmdProcess.StandardError);
                 _ = WaitForSteamAuth(_steamcmdProcess);
                 
                 _steamcmdProcess.WaitForExit();
@@ -222,27 +223,56 @@ namespace UnrealBuildTool.Build.Stages
 
             while ((await reader.ReadAsync(buffer, 0, 1)) > 0)
             {
-                Console.Write(buffer[0]);
-                // if (buffer[0].Equals('\n') )
-                // {
-                //     OnConsoleOut(_currentOutput);
-                //     _currentOutput = "";
-                //     continue;
-                // }
-                //
-                // _currentOutput += buffer[0];
-                // if (_currentOutput.Contains("Two-factor code:"))
-                // {
-                //     OnConsoleOut(_currentOutput);
-                //     _currentOutput = "";
-                //     _waitingForCode = true;
-                // }
-                //
-                // if (_currentOutput.Length >= 128)
-                // {
-                //     OnConsoleOut(_currentOutput);
-                //     _currentOutput = "";
-                // }
+                if (buffer[0].Equals('\n') )
+                {
+                    OnConsoleOut(_currentOutput);
+                    _currentOutput = "";
+                    continue;
+                }
+                
+                _currentOutput += buffer[0];
+                if (_currentOutput.Contains("Two-factor code:"))
+                {
+                    OnConsoleOut(_currentOutput);
+                    _currentOutput = "";
+                    _waitingForCode = true;
+                }
+                
+                if (_currentOutput.Length >= 128)
+                {
+                    OnConsoleOut(_currentOutput);
+                    _currentOutput = "";
+                }
+            }
+        }
+
+        private string _currentError = "";
+        async Task ConsumeError(TextReader reader)
+        {
+            char[] buffer = new char[1];
+
+            while ((await reader.ReadAsync(buffer, 0, 1)) > 0)
+            {
+                if (buffer[0].Equals('\n') )
+                {
+                    OnConsoleOut(_currentError);
+                    _currentError = "";
+                    continue;
+                }
+                
+                _currentError += buffer[0];
+                if (_currentError.Contains("Two-factor code:"))
+                {
+                    OnConsoleOut(_currentError);
+                    _currentError = "";
+                    _waitingForCode = true;
+                }
+                
+                if (_currentError.Length >= 128)
+                {
+                    OnConsoleOut(_currentError);
+                    _currentError = "";
+                }
             }
         }
 

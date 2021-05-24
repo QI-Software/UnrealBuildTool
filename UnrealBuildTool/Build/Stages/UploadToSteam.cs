@@ -253,26 +253,27 @@ namespace UnrealBuildTool.Build.Stages
 
             while ((await reader.ReadAsync(buffer, 0, 1)) > 0)
             {
-                if (buffer[0].Equals('\n') )
-                {
-                    OnConsoleOut(_currentError);
-                    _currentError = "";
-                    continue;
-                }
-                
-                _currentError += buffer[0];
-                if (_currentError.Contains("Two-factor code:"))
-                {
-                    OnConsoleOut(_currentError);
-                    _currentError = "";
-                    _waitingForCode = true;
-                }
-                
-                if (_currentError.Length >= 128)
-                {
-                    OnConsoleOut(_currentError);
-                    _currentError = "";
-                }
+                Console.Write(buffer[0]);
+                // if (buffer[0].Equals('\n') )
+                // {
+                //     OnConsoleOut(_currentError);
+                //     _currentError = "";
+                //     continue;
+                // }
+                //
+                // _currentError += buffer[0];
+                // if (_currentError.Contains("Two-factor code:"))
+                // {
+                //     OnConsoleOut(_currentError);
+                //     _currentError = "";
+                //     _waitingForCode = true;
+                // }
+                //
+                // if (_currentError.Length >= 128)
+                // {
+                //     OnConsoleOut(_currentError);
+                //     _currentError = "";
+                // }
             }
         }
 

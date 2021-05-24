@@ -16,6 +16,7 @@ namespace UnrealBuildTool.Build.Stages
         private SteamworksUser _user;
         private Process _steamcmdProcess;
         private Task _hangCheck;
+        private bool _waitingForCode = false;
         
         public override string GetName() => nameof(UploadToSteam);
 
@@ -229,6 +230,13 @@ namespace UnrealBuildTool.Build.Stages
                 }
                 
                 _currentOutput += buffer[0];
+                if (_currentOutput.Contains("Two-factor code:"))
+                {
+                    OnConsoleOut(_currentOutput);
+                    _currentOutput = "";
+                    _waitingForCode = true;
+                }
+                
                 if (_currentOutput.Length >= 128)
                 {
                     OnConsoleOut(_currentOutput);
@@ -239,43 +247,38 @@ namespace UnrealBuildTool.Build.Stages
 
         async Task WaitForSteamAuth(Process steamcmd)
         {
-            await Task.Delay(5000);
             while (!steamcmd.HasExited)
             {
-                foreach (ProcessThread thread in steamcmd.Threads)
+                if (!_waitingForCode)
                 {
-                    if (thread.ThreadState == ThreadState.Wait)
-                    {
-                        if (thread.WaitReason == ThreadWaitReason.UserRequest)
-                        {
-                            OnConsoleOut("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
-                            LogBuilder.AppendLine("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
-
-                            if (_user == null)
-                            {
-                                OnConsoleOut("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
-                                LogBuilder.AppendLine("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
-
-                                await OnCancellationRequestedAsync();
-                                return;
-                            }
-
-                            if (_steamAuth.GetCodeForAccount(_user.Username, out string code, out string error))
-                            {
-                                OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
-                                LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
-                                await steamcmd.StandardInput.WriteLineAsync(code);
-                            }
-                            else
-                            {
-                                OnConsoleOut($"UBT: Failed to retrieve code: {error}.");
-                                LogBuilder.AppendLine($"UBT: Failed to retrieve code: {error}.");
-                                await OnCancellationRequestedAsync();
-                                return;
-                            }
-                        }
-                    }
+                    await Task.Delay(500);
                 }
+                
+                OnConsoleOut("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
+                LogBuilder.AppendLine("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
+
+                if (_user == null)
+                {
+                    OnConsoleOut("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+                    LogBuilder.AppendLine("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+
+                    await OnCancellationRequestedAsync();
+                    return;
+                }
+
+                if (_steamAuth.GetCodeForAccount(_user.Username, out string code, out string error))
+                {
+                    OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
+                    LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
+                    await steamcmd.StandardInput.WriteLineAsync(code);
+                    _waitingForCode = false;
+                    return;
+                }
+
+                OnConsoleOut($"UBT: Failed to retrieve code: {error}.");
+                LogBuilder.AppendLine($"UBT: Failed to retrieve code: {error}.");
+                await OnCancellationRequestedAsync();
+                return;
             }
         }
     }

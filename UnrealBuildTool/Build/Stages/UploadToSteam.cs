@@ -241,39 +241,46 @@ namespace UnrealBuildTool.Build.Stages
         
         async Task WaitForSteamAuth(Process steamcmd)
         {
-            while (!steamcmd.HasExited)
+            try
             {
-                foreach (ProcessThread thread in steamcmd.Threads)
+                while (!steamcmd.HasExited)
                 {
-                    if (thread.ThreadState == ThreadState.Wait && thread.WaitReason == ThreadWaitReason.UserRequest)
+                    foreach (ProcessThread thread in steamcmd.Threads)
                     {
-                        OnConsoleOut("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
-                        LogBuilder.AppendLine("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
-
-                        if (_user == null)
+                        if (thread.ThreadState == ThreadState.Wait && thread.WaitReason == ThreadWaitReason.UserRequest)
                         {
-                            OnConsoleOut("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
-                            LogBuilder.AppendLine("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+                            OnConsoleOut("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
+                            LogBuilder.AppendLine("UBT: SteamCMD is hanging! Probably waiting for a Steam Guard code.");
 
+                            if (_user == null)
+                            {
+                                OnConsoleOut("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+                                LogBuilder.AppendLine("UBT: No SteamAuth user found, cannot get Steam Guard code. Failing.");
+
+                                await OnCancellationRequestedAsync();
+                                return;
+                            }
+
+                            if (_steamAuth.GetCodeForAccount(_user.Username, out string code, out string error))
+                            {
+                                OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
+                                LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
+                                steamcmd.StandardInput.WriteLine(code);
+                                await Task.Delay(5000);
+                                return;
+                            }
+
+                            OnConsoleOut($"UBT: Failed to retrieve code: {error}.");
+                            LogBuilder.AppendLine($"UBT: Failed to retrieve code: {error}.");
                             await OnCancellationRequestedAsync();
                             return;
                         }
-
-                        if (_steamAuth.GetCodeForAccount(_user.Username, out string code, out string error))
-                        {
-                            OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
-                            LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
-                            steamcmd.StandardInput.WriteLine(code);
-                            await Task.Delay(5000);
-                            return;
-                        }
-
-                        OnConsoleOut($"UBT: Failed to retrieve code: {error}.");
-                        LogBuilder.AppendLine($"UBT: Failed to retrieve code: {error}.");
-                        await OnCancellationRequestedAsync();
-                        return;
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
     }

@@ -225,8 +225,15 @@ namespace UnrealBuildTool.Build.Stages
                 if (buffer[0].Equals('\n') )
                 {
                     OnConsoleOut(_currentOutput);
+                    LogBuilder.AppendLine(_currentOutput);
                     _currentOutput = "";
                     continue;
+                }
+                
+                // This is hacky, but it works. Oh well!
+                if (_currentOutput.Contains("Logging in user"))
+                {
+                    _waitingForCode = true;
                 }
                 
                 _currentOutput += buffer[0];
@@ -234,6 +241,7 @@ namespace UnrealBuildTool.Build.Stages
                 if (_currentOutput.Length >= 128)
                 {
                     OnConsoleOut(_currentOutput);
+                    LogBuilder.AppendLine(_currentOutput);
                     _currentOutput = "";
                 }
             }
@@ -241,9 +249,9 @@ namespace UnrealBuildTool.Build.Stages
         
         async Task WaitForSteamAuth(Process steamcmd)
         {
-            try
+            while (!steamcmd.HasExited)
             {
-                while (!steamcmd.HasExited)
+                if (_waitingForCode)
                 {
                     foreach (ProcessThread thread in steamcmd.Threads)
                     {
@@ -266,7 +274,6 @@ namespace UnrealBuildTool.Build.Stages
                                 OnConsoleOut($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
                                 LogBuilder.AppendLine($"UBT: Retrieved Steam Guard code '{code}', feeding to SteamCMD.");
                                 steamcmd.StandardInput.WriteLine(code);
-                                await Task.Delay(5000);
                                 return;
                             }
 
@@ -276,11 +283,9 @@ namespace UnrealBuildTool.Build.Stages
                             return;
                         }
                     }
+                    
+                    await Task.Delay(5000);
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
             }
         }
     }

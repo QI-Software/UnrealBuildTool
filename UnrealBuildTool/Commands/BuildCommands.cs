@@ -271,7 +271,7 @@ namespace UnrealBuildTool.Commands
                     DiscordColor.Red));
             }
             
-            var config = configs[number];
+            var config = configs[number - 1];
             var startStatus = await ctx.RespondAsync(_embed.Message("Starting build...", DiscordColor.Blurple));
 
             if (!_buildService.StartBuild(config, ctx.User, out string errorMessage))

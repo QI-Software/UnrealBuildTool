@@ -247,6 +247,43 @@ namespace UnrealBuildTool.Commands
             await startStatus.ModifyAsync(_embed.Message("Successfully started build.", DiscordColor.Green));
         }
 
+        [Command("forcebuild")]
+        public async Task ForceStartBuild(CommandContext ctx, int number)
+        {
+            if (_buildService.IsBuilding())
+            {
+                await ctx.RespondAsync(_embed.Message("Cannot start multiple builds at the same time.",
+                    DiscordColor.Red));
+                return;
+            }
+
+            var configs = _buildService.GetBuildConfigurations();
+            if (configs.Count == 0)
+            {
+                await ctx.RespondAsync(_embed.Message("Cannot start a build: no available build configurations.",
+                    DiscordColor.Red));
+                return;
+            }
+
+            if (number < 1 || number > configs.Count)
+            {
+                await ctx.RespondAsync(_embed.Message("Cannot start a build: unknown build configuration.",
+                    DiscordColor.Red));
+            }
+            
+            var config = configs[number];
+            var startStatus = await ctx.RespondAsync(_embed.Message("Starting build...", DiscordColor.Blurple));
+
+            if (!_buildService.StartBuild(config, ctx.User, out string errorMessage))
+            {
+                await startStatus.ModifyAsync(
+                    _embed.Message($"An error occured while starting the build: {errorMessage}", DiscordColor.Red));
+                return;
+            }
+
+            await startStatus.ModifyAsync(_embed.Message("Successfully started build.", DiscordColor.Green));
+        }
+
         [Command("cancelbuild")]
         [Aliases("cancel")]
         public async Task CancelBuild(CommandContext ctx)

@@ -230,7 +230,10 @@ namespace UnrealBuildTool.Commands
             var msg = await builder.SendAsync(ctx.Channel);
 
             var buttonResult = await msg.WaitForButtonAsync(TimeSpan.FromMinutes(5));
-            await msg.ModifyAsync(new DiscordMessageBuilder().WithEmbed(embed));
+            confirmButton.Disabled = true;
+            deleteButton.Disabled = true;
+            
+            await msg.ModifyAsync(new DiscordMessageBuilder().WithEmbed(embed).WithComponents(confirmButton, deleteButton));
             if (buttonResult.TimedOut || buttonResult.Result.Id == "cancel_build")
             {
                 await ctx.RespondAsync(_embed.Message("Aborting build.", DiscordColor.Red));

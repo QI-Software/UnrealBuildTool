@@ -145,7 +145,7 @@ namespace UnrealBuildTool.Commands
         {
             if (_buildService.IsBuilding())
             {
-                await ctx.RespondAsync(_embed.Message("Cannot start multiple builds at the same time.",
+                await ctx.Message.RespondAsync(_embed.Message("Cannot start multiple builds at the same time.",
                     DiscordColor.Red));
                 return;
             }
@@ -153,7 +153,7 @@ namespace UnrealBuildTool.Commands
             var configs = _buildService.GetBuildConfigurations();
             if (configs.Count == 0)
             {
-                await ctx.RespondAsync(_embed.Message("Cannot start a build: no available build configurations.",
+                await ctx.Message.RespondAsync(_embed.Message("Cannot start a build: no available build configurations.",
                     DiscordColor.Red));
                 return;
             }
@@ -171,7 +171,7 @@ namespace UnrealBuildTool.Commands
                 .AddField("**Available Configurations**", sb.ToString())
                 .Build();
 
-            await ctx.RespondAsync(embed);
+            await ctx.Message.RespondAsync(embed);
 
             var interactivity = ctx.Client.GetInteractivity();
 
@@ -208,11 +208,13 @@ namespace UnrealBuildTool.Commands
 
             var warning = $@"You are about to start a build with the **{config.Name}** configuration.
 
-                             Say **Start** to begin.
+                             Press **Start** to begin.
 
-                             Say **Cancel** to abort.";
+                             Press **Cancel** to abort.";
 
-
+            var confirmButton = new DiscordButtonComponent(ButtonStyle.Danger, "confirm_build", "Start");
+            var deleteButton = new DiscordButtonComponent(ButtonStyle.Primary, "cancel_build", "Cancel");
+            
             embed = new DiscordEmbedBuilder()
                 .WithTitle("UnrealBuildTool - " + config.Name)
                 .WithDescription(description)
@@ -221,22 +223,21 @@ namespace UnrealBuildTool.Commands
                 .WithFooter("Warning - are you sure you want to start this build?")
                 .Build();
 
-            var msg = await ctx.RespondAsync(embed);
+            var builder = new DiscordMessageBuilder()
+                .WithEmbed(embed)
+                .WithComponents(confirmButton, deleteButton);
 
-            var reactResult = await interactivity.WaitForMessageAsync(m =>
-                {
-                    return m.Author.Id == ctx.User.Id  && (m.Content.ToLower() == "start" || m.Content.ToLower() == "cancel");
-                },
-                TimeSpan.FromMinutes(1));
+            var msg = await builder.SendAsync(ctx.Channel);
 
-            if (reactResult.TimedOut || reactResult.Result.Content.ToLower() != "start")
+            var buttonResult = await msg.WaitForButtonAsync(TimeSpan.FromMinutes(5));
+            await msg.ModifyAsync(new DiscordMessageBuilder().WithEmbed(embed));
+            if (buttonResult.TimedOut || buttonResult.Result.Id == "cancel_build")
             {
                 await ctx.RespondAsync(_embed.Message("Aborting build.", DiscordColor.Red));
                 return;
             }
 
-            var startStatus = await ctx.RespondAsync(_embed.Message("Starting build...", DiscordColor.Blurple));
-
+            var startStatus = await ctx.RespondAsync(_embed.Message("Starting build...", DiscordColor.Orange));
             if (!_buildService.StartBuild(config, ctx.User, out string errorMessage))
             {
                 await startStatus.ModifyAsync(
@@ -408,7 +409,7 @@ namespace UnrealBuildTool.Commands
             }
 
             await File.WriteAllTextAsync($"config/buildConfigurations/{file.FileName}", json);
-            await ctx.RespondAsync(_embed.Message($"Saved configuration to {file.FileName}. Don't forget to reload configs.", DiscordColor.Green));
+            await ctx.RespondAsync(_embed.Message($"Saved configuration to {file.FileName}. Don't forget to reload configs.", DiscordColor.Green)); 
         }
 
         [Command("configtemplate")]
@@ -427,14 +428,12 @@ namespace UnrealBuildTool.Commands
         [Command("stagetemplate")]
         public async Task GetStageTemplates(CommandContext ctx)
         {
-            using (var stream = File.OpenRead("config/stageTemplates.json"))
-            {
-                var builder = new DiscordMessageBuilder()
-                    .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
-                    .WithFile("config/stageTemplates.json", stream);
+            using var stream = File.OpenRead("config/stageTemplates.json");
+            var builder = new DiscordMessageBuilder()
+                .WithEmbed(_embed.Message("Here you go.", DiscordColor.Green))
+                .WithFile("config/stageTemplates.json", stream);
                 
-                await ctx.RespondAsync(builder);
-            }
+            await ctx.RespondAsync(builder);
         }
     }
 }

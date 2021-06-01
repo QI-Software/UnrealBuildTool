@@ -4,10 +4,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-using DSharpPlus.VoiceNext;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -91,12 +90,12 @@ namespace UnrealBuildTool
                 IgnoreExtraArguments = true,
             });
 
-            _client.UseInteractivity(new InteractivityConfiguration());
-            _client.UseVoiceNext(new VoiceNextConfiguration()
+            _client.UseInteractivity(new InteractivityConfiguration
             {
-                EnableIncoming = false,
+                ResponseBehavior = InteractionResponseBehavior.Respond,
+                ResponseMessage = "An error has occured while handling your interaction."
             });
-            
+
             _commands.RegisterCommands(Assembly.GetEntryAssembly());
             _services.GetRequiredService<DiscordEventHandler>().SetupCommandHandlers(_commands);
 

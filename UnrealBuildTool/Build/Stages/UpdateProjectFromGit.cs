@@ -23,6 +23,7 @@ namespace UnrealBuildTool.Build.Stages
             AddDefaultConfigurationKey("RunGitClean",  true);
             AddDefaultConfigurationKey("RunGitResetHard",  true);
             AddDefaultConfigurationKey("RunGitLFSPrune", true);
+            AddDefaultConfigurationKey("MainBranchName", "master");
         }
 
         public override Task<StageResult> DoTaskAsync(IServiceProvider services)
@@ -30,6 +31,7 @@ namespace UnrealBuildTool.Build.Stages
             TryGetConfigValue("RunGitClean", out bool bRunGitClean);
             TryGetConfigValue("RunGitResetHard", out bool bRunGitReset);
             TryGetConfigValue("RunGitLFSPrune", out bool bRunGitLFSPrune);
+            TryGetConfigValue("MainBranchName", out string mainBranchName);
 
             var cleanArguments = new[]
             {
@@ -44,7 +46,8 @@ namespace UnrealBuildTool.Build.Stages
                 "git",
                 $"-C \"{BuildConfig.ProjectDirectory}\"",
                 "reset",
-                "--hard"
+                "--hard",
+                $"origin/{mainBranchName}"
             };
 
             var lfsPruneArguments = new[]

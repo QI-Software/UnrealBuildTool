@@ -174,8 +174,24 @@ namespace UnrealBuildTool.Build.Stages
             OnConsoleOut("UBT: Running git pull.");
             _pullProcess = new Process {StartInfo = startInfo};
             _pullProcess.StartInfo.Arguments = "/C " + string.Join(' ', pullArguments);
-            _pullProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-            _pullProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _pullProcess.OutputDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    OnConsoleOut(args.Data);
+                    LogBuilder.AppendLine(args.Data);
+                }
+            };
+            
+            _pullProcess.ErrorDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    OnConsoleError(args.Data);
+                    LogBuilder.AppendLine(args.Data);
+                }
+            };
+            
             _pullProcess.Start();
             _pullProcess.BeginOutputReadLine();
             _pullProcess.BeginErrorReadLine();

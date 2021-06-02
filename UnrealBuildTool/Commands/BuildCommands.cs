@@ -145,7 +145,7 @@ namespace UnrealBuildTool.Commands
         {
             if (_buildService.IsBuilding())
             {
-                await ctx.Message.RespondAsync(_embed.Message("Cannot start multiple builds at the same time.",
+                await ctx.RespondAsync(_embed.Message("Cannot start multiple builds at the same time.",
                     DiscordColor.Red));
                 return;
             }
@@ -153,7 +153,7 @@ namespace UnrealBuildTool.Commands
             var configs = _buildService.GetBuildConfigurations();
             if (configs.Count == 0)
             {
-                await ctx.Message.RespondAsync(_embed.Message("Cannot start a build: no available build configurations.",
+                await ctx.RespondAsync(_embed.Message("Cannot start a build: no available build configurations.",
                     DiscordColor.Red));
                 return;
             }
@@ -171,7 +171,7 @@ namespace UnrealBuildTool.Commands
                 .AddField("**Available Configurations**", sb.ToString())
                 .Build();
 
-            await ctx.Message.RespondAsync(embed);
+            await ctx.RespondAsync(embed);
 
             var interactivity = ctx.Client.GetInteractivity();
 
@@ -211,10 +211,10 @@ namespace UnrealBuildTool.Commands
                              Press **Start** to begin.
 
                              Press **Cancel** to abort.";
-
+            
             var confirmButton = new DiscordButtonComponent(ButtonStyle.Danger, "confirm_build", "Start");
             var deleteButton = new DiscordButtonComponent(ButtonStyle.Primary, "cancel_build", "Cancel");
-            
+
             embed = new DiscordEmbedBuilder()
                 .WithTitle("UnrealBuildTool - " + config.Name)
                 .WithDescription(description)

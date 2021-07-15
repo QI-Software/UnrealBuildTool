@@ -71,8 +71,23 @@ namespace UnrealBuildTool.Build.Stages
                     }
                 };
             
-                _msbuildProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-                _msbuildProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _msbuildProcess.OutputDataReceived += (sender, args) =>
+                {
+                    OnConsoleOut(args.Data);
+                    if (args.Data.ToLower().Contains("error"))
+                    {
+                        LogBuilder.AppendLine(args.Data);
+                    }
+                };
+                
+                _msbuildProcess.ErrorDataReceived += (sender, args) =>
+                {
+                    OnConsoleError(args.Data);
+                    if (args.Data.ToLower().Contains("error"))
+                    {
+                        LogBuilder.AppendLine(args.Data);
+                    }
+                };
                 _msbuildProcess.Start();
                 _msbuildProcess.BeginOutputReadLine();
                 _msbuildProcess.BeginErrorReadLine();

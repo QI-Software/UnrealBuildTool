@@ -73,21 +73,22 @@ namespace UnrealBuildTool.Build.Stages
             
                 _msbuildProcess.OutputDataReceived += (sender, args) =>
                 {
-                    OnConsoleOut(args.Data);
-                    if (args.Data.ToLower().Contains("error"))
+                    if (args.Data != null)
                     {
+                        OnConsoleOut(args.Data);
                         LogBuilder.AppendLine(args.Data);
                     }
                 };
                 
                 _msbuildProcess.ErrorDataReceived += (sender, args) =>
                 {
-                    OnConsoleError(args.Data);
-                    if (args.Data.ToLower().Contains("error"))
+                    if (args.Data != null)
                     {
+                        OnConsoleError(args.Data);
                         LogBuilder.AppendLine(args.Data);
                     }
                 };
+                
                 _msbuildProcess.Start();
                 _msbuildProcess.BeginOutputReadLine();
                 _msbuildProcess.BeginErrorReadLine();
@@ -158,8 +159,23 @@ namespace UnrealBuildTool.Build.Stages
                 };
                 OnConsoleOut($"UBT: Running compile with command line: '{_ubtProcess.StartInfo.Arguments}'");
                 
-                _ubtProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-                _ubtProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _ubtProcess.OutputDataReceived += (sender, args) =>
+                {
+                    if (args.Data != null)
+                    {
+                        OnConsoleOut(args.Data);
+                        LogBuilder.AppendLine(args.Data);
+                    }
+                };
+                
+                _ubtProcess.ErrorDataReceived += (sender, args) => 
+                {
+                    if (args.Data != null)
+                    {
+                        OnConsoleError(args.Data);
+                        LogBuilder.AppendLine(args.Data);
+                    }
+                };
                 _ubtProcess.Start();
                 _ubtProcess.BeginOutputReadLine();
                 _ubtProcess.BeginErrorReadLine();

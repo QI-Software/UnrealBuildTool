@@ -6,9 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="DSharpPlus" Version="4.1.0-nightly-00872" />
-      <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0-nightly-00872" />
-      <PackageReference Include="DSharpPlus.Interactivity" Version="4.1.0-nightly-00872" />
+      <PackageReference Include="DSharpPlus" Version="4.2.0-nightly-00987" />
+      <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-00987" />
+      <PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-00987" />
       <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.9.0" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
       <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />

@@ -133,7 +133,7 @@ namespace UnrealBuildTool.Build.Stages
                     return Task.FromResult(StageResult.Failed);
                 }
 
-                if (_cleanProcess.ExitCode != 0)
+                if (_pruneProcess.ExitCode != 0)
                 {
                     FailureReason = $"An error occured while running git remote prune origin ({_pruneProcess.ExitCode})";
                     return Task.FromResult(StageResult.Failed);

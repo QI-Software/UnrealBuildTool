@@ -20,6 +20,7 @@ namespace UnrealBuildTool.Build.Stages
         {
             base.GenerateDefaultStageConfiguration();
             
+            AddDefaultConfigurationKey("RunGitRemotePruneOrigin", true);
             AddDefaultConfigurationKey("RunGitClean",  true);
             AddDefaultConfigurationKey("RunGitResetHard",  true);
             AddDefaultConfigurationKey("RunGitLFSPrune", true);
@@ -28,11 +29,20 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
+            TryGetConfigValue("RunGitRemotePrune", out bool bRunGitRemotePruneOrigin);
             TryGetConfigValue("RunGitClean", out bool bRunGitClean);
             TryGetConfigValue("RunGitResetHard", out bool bRunGitReset);
             TryGetConfigValue("RunGitLFSPrune", out bool bRunGitLFSPrune);
             TryGetConfigValue("MainBranchName", out string mainBranchName);
 
+            var remotePruneArguments = new[]
+            {
+                "git",
+                "remote",
+                "prune",
+                "origin"
+            };
+            
             var cleanArguments = new[]
             {
                 "git",
@@ -101,6 +111,30 @@ namespace UnrealBuildTool.Build.Stages
                 if (_cleanProcess.ExitCode != 0)
                 {
                     FailureReason = $"An error occured while running git clean ({_cleanProcess.ExitCode})";
+                    return Task.FromResult(StageResult.Failed);
+                }
+            }
+            
+            if (bRunGitRemotePruneOrigin)
+            {
+                OnConsoleOut("UBT: Running git remote prune origin.");
+                _pruneProcess = new Process() {StartInfo = startInfo};
+                _pruneProcess.StartInfo.Arguments = "/C " + string.Join(' ', remotePruneArguments);
+                _pruneProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+                _pruneProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+                _pruneProcess.Start();
+                _pruneProcess.BeginOutputReadLine();
+                _pruneProcess.BeginErrorReadLine();
+                _pruneProcess.WaitForExit();
+
+                if (IsCancelled)
+                {
+                    return Task.FromResult(StageResult.Failed);
+                }
+
+                if (_cleanProcess.ExitCode != 0)
+                {
+                    FailureReason = $"An error occured while running git remote prune origin ({_pruneProcess.ExitCode})";
                     return Task.FromResult(StageResult.Failed);
                 }
             }

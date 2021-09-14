@@ -29,7 +29,7 @@ namespace UnrealBuildTool.Build.Stages
 
         public override Task<StageResult> DoTaskAsync(IServiceProvider services)
         {
-            TryGetConfigValue("RunGitRemotePrune", out bool bRunGitRemotePruneOrigin);
+            TryGetConfigValue("RunGitRemotePruneOrigin", out bool bRunGitRemotePruneOrigin);
             TryGetConfigValue("RunGitClean", out bool bRunGitClean);
             TryGetConfigValue("RunGitResetHard", out bool bRunGitReset);
             TryGetConfigValue("RunGitLFSPrune", out bool bRunGitLFSPrune);

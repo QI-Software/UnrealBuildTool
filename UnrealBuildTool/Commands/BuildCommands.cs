@@ -214,7 +214,7 @@ namespace UnrealBuildTool.Commands
             
             var confirmButton = new DiscordButtonComponent(ButtonStyle.Danger, "confirm_build", "Start");
             var deleteButton = new DiscordButtonComponent(ButtonStyle.Primary, "cancel_build", "Cancel");
-
+            
             embed = new DiscordEmbedBuilder()
                 .WithTitle("UnrealBuildTool - " + config.Name)
                 .WithDescription(description)
@@ -225,7 +225,7 @@ namespace UnrealBuildTool.Commands
 
             var builder = new DiscordMessageBuilder()
                 .WithEmbed(embed)
-                .WithComponents(confirmButton, deleteButton);
+                .AddComponents(confirmButton, deleteButton);
 
             var msg = await builder.SendAsync(ctx.Channel);
 

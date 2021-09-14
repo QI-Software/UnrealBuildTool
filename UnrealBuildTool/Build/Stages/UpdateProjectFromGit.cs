@@ -38,6 +38,7 @@ namespace UnrealBuildTool.Build.Stages
             var remotePruneArguments = new[]
             {
                 "git",
+                $"-C \"{BuildConfig.ProjectDirectory}\"",
                 "remote",
                 "prune",
                 "origin"

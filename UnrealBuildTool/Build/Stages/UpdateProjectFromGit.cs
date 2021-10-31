@@ -91,6 +91,22 @@ namespace UnrealBuildTool.Build.Stages
                 RedirectStandardOutput = true,
                 UseShellExecute = false
             };
+            
+            OnConsoleOut("UBT: Running git fetch.");
+            _fetchProcess = new Process {StartInfo = startInfo};
+            _fetchProcess.StartInfo.Arguments = "/C " + string.Join(' ', fetchArguments);
+            _fetchProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
+            _fetchProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
+            _fetchProcess.Start();
+            _fetchProcess.BeginOutputReadLine();
+            _fetchProcess.BeginErrorReadLine();
+            _fetchProcess.WaitForExit();
+            
+            if (_fetchProcess.ExitCode != 0)
+            {
+                FailureReason = $"An error has occured while running git fetch ({_fetchProcess.ExitCode})";
+                return Task.FromResult(StageResult.Failed);
+            }
 
             if (bRunGitClean)
             {
@@ -188,27 +204,11 @@ namespace UnrealBuildTool.Build.Stages
                 }
             }
 
-            OnConsoleOut("UBT: Running git fetch.");
-            _fetchProcess = new Process {StartInfo = startInfo};
-            _fetchProcess.StartInfo.Arguments = "/C " + string.Join(' ', fetchArguments);
-            _fetchProcess.OutputDataReceived += (sender, args) => OnConsoleOut(args.Data);
-            _fetchProcess.ErrorDataReceived += (sender, args) => OnConsoleError(args.Data);
-            _fetchProcess.Start();
-            _fetchProcess.BeginOutputReadLine();
-            _fetchProcess.BeginErrorReadLine();
-            _fetchProcess.WaitForExit();
-            
             if (IsCancelled)
             {
                 return Task.FromResult(StageResult.Failed);
             }
 
-            if (_fetchProcess.ExitCode != 0)
-            {
-                FailureReason = $"An error has occured while running git fetch ({_fetchProcess.ExitCode})";
-                return Task.FromResult(StageResult.Failed);
-            }
-            
             OnConsoleOut("UBT: Running git pull.");
             _pullProcess = new Process {StartInfo = startInfo};
             _pullProcess.StartInfo.Arguments = "/C " + string.Join(' ', pullArguments);
